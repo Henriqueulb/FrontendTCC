@@ -16,7 +16,9 @@ data class CadastroRequest(
     @SerializedName("nome") val nome: String,
     @SerializedName("email") val email: String,
     @SerializedName("senha") val senha: String,
-    @SerializedName("telefone") val telefone: String
+    @SerializedName("telefone") val telefone: String,
+    @SerializedName("isAcompanhante") val isAcompanhante: Boolean = false,
+    @SerializedName("codigoConvite") val codigoConvite: String? = null
 )
 
 data class RespostaApi(
@@ -91,6 +93,17 @@ data class NotificacaoConfigDTO(
     @SerializedName("som") val som: Boolean
 )
 
+data class AcompanhanteDTO(
+    @SerializedName("idVinculo") val idVinculo: Int,
+    @SerializedName("nomeAcompanhante") val nomeAcompanhante: String,
+    @SerializedName("emailAcompanhante") val emailAcompanhante: String,
+    @SerializedName("status") val status: String
+)
+
+data class CodigoConviteDTO(
+    @SerializedName("codigo") val codigo: String
+)
+
 // Interface
 interface ApiService {
     @POST("login")
@@ -137,6 +150,15 @@ interface ApiService {
 
     @POST("notificacao")
     suspend fun salvarConfigNotificacao(@Body config: NotificacaoConfigDTO): Response<RespostaApi>
+
+    @GET("acompanhantes/codigo")
+    suspend fun gerarCodigoConvite(@Query("email") email: String): Response<CodigoConviteDTO>
+
+    @GET("acompanhantes")
+    suspend fun listarAcompanhantes(@Query("email") email: String): Response<List<AcompanhanteDTO>>
+
+    @DELETE("acompanhantes/{id}")
+    suspend fun revogarAcompanhante(@Path("id") idVinculo: Int): Response<RespostaApi>
 }
 
 object RetrofitClient {

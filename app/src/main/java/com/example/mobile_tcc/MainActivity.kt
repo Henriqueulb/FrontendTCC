@@ -139,5 +139,13 @@ fun AppNavigation() {
             val email = backStackEntry.arguments?.getString("email") ?: ""
             TelaNotificacoes(navController, email)
         }
+
+        composable(
+            route = "acompanhantes/{email}",
+            arguments = listOf(navArgument("email") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email") ?: ""
+            TelaAcompanhantes(navController, email)
+        }
     }
 }
