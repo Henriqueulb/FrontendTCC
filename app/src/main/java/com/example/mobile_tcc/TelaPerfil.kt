@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.compose.material.icons.filled.Group
 
 @Composable
 fun TelaPerfil(navController: NavController, emailUsuario: String) {
@@ -133,6 +134,16 @@ fun TelaPerfil(navController: NavController, emailUsuario: String) {
                     titulo = "Dados Médicos",
                     subtitulo = "Alergias, Doenças e Medicamentos",
                     onClick = { navController.navigate("dados_medicos/$emailUsuario") }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Acompanhantes
+                OpcaoPerfil(
+                    icone = Icons.Default.Group,
+                    titulo = "Acompanhantes",
+                    subtitulo = "Código de convite e acessos",
+                    onClick = { navController.navigate("acompanhantes/$emailUsuario") }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
