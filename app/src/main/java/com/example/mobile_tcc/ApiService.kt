@@ -28,8 +28,20 @@ data class RespostaApi(
 )
 
 // DTOs Rotina
-data class NovaRotinaDTO(
+data class RotinaResumoDTO(
+    @SerializedName("idRotina") val idRotina: Int,
+    @SerializedName("nomeRotina") val nomeRotina: String,
+    @SerializedName("dataCriacao") val dataCriacao: String,
+    @SerializedName("status") val status: String
+)
+
+data class CriarRotinaDTO(
     @SerializedName("emailUsuario") val emailUsuario: String,
+    @SerializedName("nomeRotina") val nomeRotina: String
+)
+
+data class NovoItemRotinaDTO(
+    @SerializedName("idRotina") val idRotina: Int,
     @SerializedName("titulo") val titulo: String,
     @SerializedName("horario") val horario: String,
     @SerializedName("dose") val dose: String?,
@@ -56,13 +68,13 @@ data class StatusRotinaDTO(
     @SerializedName("data") val data: String
 )
 
+// DTOs Sintomas e Perfil
 data class NovoSintomaDTO(
     @SerializedName("emailUsuario") val emailUsuario: String,
     @SerializedName("bemEstar") val bemEstar: Int,
     @SerializedName("sintomas") val sintomas: Int
 )
 
-// DTOs Perfil
 data class PerfilUsuarioDTO(
     @SerializedName("nome") val nome: String,
     @SerializedName("email") val email: String,
@@ -112,8 +124,20 @@ interface ApiService {
     @POST("cadastro")
     suspend fun cadastro(@Body request: CadastroRequest): Response<RespostaApi>
 
-    @POST("rotina")
-    suspend fun criarRotina(@Body request: NovaRotinaDTO): Response<RespostaApi>
+    @GET("rotinas")
+    suspend fun listarRotinas(@Query("email") email: String): Response<List<RotinaResumoDTO>>
+
+    @POST("rotinas")
+    suspend fun criarNovaRotina(@Body request: CriarRotinaDTO): Response<RespostaApi>
+
+    @PUT("rotinas/{id}/concluir")
+    suspend fun concluirRotina(@Path("id") idRotina: Int): Response<RespostaApi>
+
+    @GET("rotinas/{id}/itens")
+    suspend fun listarItensDaRotina(@Path("id") idRotina: Int): Response<List<ItemRotinaDTO>>
+
+    @POST("rotinas/itens")
+    suspend fun criarItemRotina(@Body request: NovoItemRotinaDTO): Response<RespostaApi>
 
     @GET("home")
     suspend fun getHome(@Query("email") email: String): Response<HomeResumoDTO>

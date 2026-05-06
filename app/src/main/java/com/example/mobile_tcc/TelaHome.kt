@@ -24,6 +24,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import androidx.compose.ui.graphics.StrokeCap
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,7 +40,7 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
     var nomeExibicao by remember { mutableStateOf("Carregando...") }
     var carregando by remember { mutableStateOf(true) }
 
-    LaunchedEffect(Unit) {
+    fun carregarHome() {
         scope.launch {
             try {
                 val response = RetrofitClient.api.getHome(emailUsuario)
@@ -55,6 +59,33 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                 carregando = false
             }
         }
+    }
+
+    fun atualizarStatusTarefa(idItem: Int, foiFeito: Boolean) {
+        val dataHoje = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
+        scope.launch {
+            try {
+                val statusDto = StatusRotinaDTO(
+                    idItem = idItem,
+                    feito = foiFeito,
+                    data = dataHoje
+                )
+                val response = RetrofitClient.api.atualizarStatus(statusDto)
+
+                if (response.isSuccessful) {
+                    carregarHome()
+                } else {
+                    Toast.makeText(context, "Erro ao atualizar status", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(context, "Erro de conexão", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        carregarHome()
     }
 
     Scaffold(
@@ -78,7 +109,7 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                     icon = { Icon(Icons.Default.Face, contentDescription = "Sintomas") },
                     label = { Text("Sintomas") },
                     selected = false,
-                    onClick = { navController.navigate("sintomas/$emailUsuario") },
+                    onClick = { navController.navigate("registro_sintomas/$emailUsuario") },
                     colors = NavigationBarItemDefaults.colors(unselectedIconColor = Color.Gray)
                 )
                 NavigationBarItem(
@@ -132,10 +163,11 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                         }
                         Spacer(modifier = Modifier.height(12.dp))
                         LinearProgressIndicator(
-                            progress = progresso,
+                            progress = { progresso },
                             modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)),
                             color = Color(0xFF0D47A1),
-                            trackColor = Color.White
+                            trackColor = Color.White,
+                            strokeCap = StrokeCap.Round
                         )
                     }
                 }
@@ -175,7 +207,18 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                                 Text("Horário: ${item.horario}", fontSize = 14.sp, color = Color.Black)
                                 if (!item.dose.isNullOrBlank()) Text("Dose: ${item.dose}", fontSize = 14.sp, color = Color.Gray)
                             }
-                            Text(">", fontSize = 20.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
+
+                            Checkbox(
+                                checked = item.feita,
+                                onCheckedChange = { isChecked ->
+                                    atualizarStatusTarefa(item.id, isChecked)
+                                },
+                                colors = CheckboxDefaults.colors(
+                                    checkedColor = Color(0xFFE65100),
+                                    uncheckedColor = Color(0xFFE65100),
+                                    checkmarkColor = Color.White
+                                )
+                            )
                         }
                     }
                 }

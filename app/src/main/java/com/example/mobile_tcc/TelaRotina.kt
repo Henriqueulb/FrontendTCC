@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,48 +20,32 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.compose.runtime.livedata.observeAsState
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TelaRotina(navController: NavController, emailUsuario: String) {
+fun TelaRotina(navController: NavController, emailUsuario: String, idRotina: Int) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     var listaTarefas by remember { mutableStateOf<List<ItemRotinaDTO>>(emptyList()) }
     var carregando by remember { mutableStateOf(true) }
 
-    // Verifica se a tela anterior mandou um pedido de "refresh"
+    // sinalizacao de "refresh" vindo da tela de adicao
     val precisaAtualizar = navController.currentBackStackEntry
         ?.savedStateHandle
         ?.getLiveData<Boolean>("refresh")
         ?.observeAsState()
 
-    // Funcao que busca
     fun carregarDados() {
         scope.launch {
             try {
                 carregando = true
-                val response = RetrofitClient.api.getHome(emailUsuario)
-
+                val response = RetrofitClient.api.listarItensDaRotina(idRotina)
                 if (response.isSuccessful) {
-                    val dados = response.body()
-                    if (dados != null) {
-                        listaTarefas = dados.tarefas
-
-                        dados.tarefas.forEach { item ->
-                            if (!item.feita) {
-                                AgendadorNotificacoes.agendarAlarme(
-                                    context,
-                                    item.id,
-                                    item.horario,
-                                    item.titulo
-                                )
-                            }
-                        }
-                    }
+                    listaTarefas = response.body() ?: emptyList()
+                } else {
+                    Toast.makeText(context, "Erro ao carregar itens", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 Toast.makeText(context, "Erro de conexão", Toast.LENGTH_SHORT).show()
@@ -70,53 +55,30 @@ fun TelaRotina(navController: NavController, emailUsuario: String) {
         }
     }
 
-    // Carrega na primeira vez
-    LaunchedEffect(Unit) {
-        carregarDados()
-    }
-
-    // Carrega se receber o sinal de "refresh"
-    LaunchedEffect(precisaAtualizar?.value) {
-        if (precisaAtualizar?.value == true) {
-            carregarDados()
-            navController.currentBackStackEntry?.savedStateHandle?.set("refresh", false)
-        }
-    }
-
-    // Funcoes de Acao
-    fun deletarItem(idItem: Int) {
+    fun excluirTarefa(idItem: Int) {
         scope.launch {
             try {
                 val response = RetrofitClient.api.deletarRotina(idItem)
                 if (response.isSuccessful) {
-                    Toast.makeText(context, "Item removido!", Toast.LENGTH_SHORT).show()
-                    listaTarefas = listaTarefas.filter { it.id != idItem }
+                    Toast.makeText(context, "Item removido", Toast.LENGTH_SHORT).show()
+                    carregarDados()
                 }
             } catch (e: Exception) {
-                Toast.makeText(context, "Erro ao deletar", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Erro ao excluir", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    fun atualizarStatus(item: ItemRotinaDTO, novoStatus: Boolean) {
-        scope.launch {
-            try {
-                listaTarefas = listaTarefas.map { if (it.id == item.id) it.copy(feita = novoStatus) else it }
-
-                val hoje = LocalDate.now().toString()
-                val dto = StatusRotinaDTO(item.id, novoStatus, hoje)
-                RetrofitClient.api.atualizarStatus(dto)
-            } catch (e: Exception) {
-                // Reverte em caso de erro
-                listaTarefas = listaTarefas.map { if (it.id == item.id) it.copy(feita = !novoStatus) else it }
-            }
-        }
+    LaunchedEffect(Unit, precisaAtualizar?.value) {
+        carregarDados()
+        // controle para nao entrar em loop
+        navController.currentBackStackEntry?.savedStateHandle?.set("refresh", false)
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Minha Rotina", color = Color.White) },
+                title = { Text("Cuidados da Rotina", color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = Color.White)
@@ -127,63 +89,69 @@ fun TelaRotina(navController: NavController, emailUsuario: String) {
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate("adicionar_rotina/$emailUsuario") },
+                onClick = {
+                    // Navega para adicionar item passando o ID da rotina pai
+                    navController.navigate("adicionar_item_rotina/$idRotina")
+                },
                 containerColor = Color(0xFF0D47A1),
                 contentColor = Color.White
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Adicionar")
+                Icon(Icons.Default.Add, contentDescription = "Adicionar Cuidado")
             }
         }
-    ) { paddingValues ->
+    ) { padding ->
         Column(
             modifier = Modifier
+                .padding(padding)
                 .fillMaxSize()
-                .padding(paddingValues)
                 .padding(16.dp)
         ) {
             if (carregando) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = Color(0xFF0D47A1))
                 }
             } else if (listaTarefas.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Nenhuma tarefa pendente!", color = Color.Gray)
+                    Text("Nenhum cuidado cadastrado nesta rotina.", color = Color.Gray)
                 }
             } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(listaTarefas) { item ->
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(listaTarefas) { tarefa ->
                         Card(
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F4F8)),
                             shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F4F8)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
-                                modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                                    Checkbox(
-                                        checked = item.feita,
-                                        onCheckedChange = { isChecked -> atualizarStatus(item, isChecked) },
-                                        colors = CheckboxDefaults.colors(checkedColor = Color(0xFF0D47A1))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = tarefa.titulo,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 18.sp,
+                                        color = Color(0xFF0D47A1)
                                     )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Column {
-                                        Text(
-                                            text = item.titulo,
-                                            fontWeight = FontWeight.Bold,
-                                            color = if(item.feita) Color.Gray else Color.Black
-                                        )
-                                        Text(
-                                            text = "${item.horario} - ${item.dose ?: ""}",
-                                            fontSize = 14.sp,
-                                            color = Color.Gray
-                                        )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(text = "Horário: ${tarefa.horario}", fontSize = 14.sp)
+                                    if (!tarefa.dose.isNullOrBlank()) {
+                                        Text(text = "Dose: ${tarefa.dose}", fontSize = 14.sp)
                                     }
                                 }
-                                IconButton(onClick = { deletarItem(item.id) }) {
-                                    Icon(Icons.Default.Delete, "Apagar", tint = Color.Red)
+
+                                IconButton(onClick = { excluirTarefa(tarefa.id) }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "Excluir",
+                                        tint = Color.Red
+                                    )
                                 }
                             }
                         }
