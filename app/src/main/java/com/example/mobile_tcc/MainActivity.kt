@@ -10,26 +10,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.mobile_tcc.ui.theme.Mobile_TCCTheme
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.os.Build
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val canal = NotificationChannel(
-                "canal_medicamentos",
-                "Lembretes de Rotina",
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "Notificações para horário de medicamentos"
-            }
-            val notificationManager = getSystemService(NotificationManager::class.java)
-            notificationManager.createNotificationChannel(canal)
-        }
-
         setContent {
             Mobile_TCCTheme {
                 AppNavigation()
@@ -40,12 +24,9 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AppNavigation() {
-    // Cria o controlador de navegacao
     val navController = rememberNavController()
 
-    // Define o mapa de navegacao
     NavHost(navController = navController, startDestination = "login") {
-
         // TELA DE LOGIN
         composable("login") {
             TelaLogin(navController)
@@ -56,42 +37,58 @@ fun AppNavigation() {
             TelaCadastro(navController)
         }
 
-        //  TELA HOME
+        // TELA HOME
         composable(
             route = "home/{email}",
             arguments = listOf(navArgument("email") { type = NavType.StringType })
         ) { backStackEntry ->
-            // Recupera o email passado na rota
             val email = backStackEntry.arguments?.getString("email") ?: ""
             TelaHome(navController, email)
         }
 
-        // TELA DE ROTINA
+        // 1. Lista de Pastas de Rotinas (Aba de Rotinas Principal)
         composable(
             route = "rotina/{email}",
             arguments = listOf(navArgument("email") { type = NavType.StringType })
         ) { backStackEntry ->
             val email = backStackEntry.arguments?.getString("email") ?: ""
-            TelaRotina(navController, email)
+            TelaListaRotinas(navController, email)
         }
 
-        // TELA DE ADICIONAR ITEM NA ROTINA
+        // 2. Criar Nova Pasta de Rotina
         composable(
-            route = "adicionar_rotina/{email}",
+            route = "criar_rotina/{email}",
             arguments = listOf(navArgument("email") { type = NavType.StringType })
         ) { backStackEntry ->
             val email = backStackEntry.arguments?.getString("email") ?: ""
-            TelaAdicionarRotina(navController, email)
+            TelaCriarRotina(navController, email)
         }
 
+        // 3. Detalhes da Rotina (Lista os cuidados/itens dentro de uma pasta especifica)
         composable(
-            route = "sintomas/{email}",
-            arguments = listOf(navArgument("email") { type = NavType.StringType })
+            route = "rotina_detalhes/{email}/{idRotina}",
+            arguments = listOf(
+                navArgument("email") { type = NavType.StringType },
+                navArgument("idRotina") { type = NavType.IntType }
+            )
         ) { backStackEntry ->
             val email = backStackEntry.arguments?.getString("email") ?: ""
-            TelaRegistroSintomas(navController, email)
+            val idRotina = backStackEntry.arguments?.getInt("idRotina") ?: 0
+            TelaRotina(navController, email, idRotina)
         }
 
+        // 4. Adicionar um Cuidado/Item dentro de uma Rotina especifica
+        composable(
+            route = "adicionar_item_rotina/{idRotina}",
+            arguments = listOf(
+                navArgument("idRotina") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val idRotina = backStackEntry.arguments?.getInt("idRotina") ?: 0
+            TelaAdicionarRotina(navController, idRotina)
+        }
+
+        // TELA DE PERFIL
         composable(
             route = "perfil/{email}",
             arguments = listOf(navArgument("email") { type = NavType.StringType })
@@ -100,14 +97,16 @@ fun AppNavigation() {
             TelaPerfil(navController, email)
         }
 
+        // TELA DE REGISTRO DE SINTOMAS
         composable(
-            route = "editar_perfil/{email}",
+            route = "registro_sintomas/{email}",
             arguments = listOf(navArgument("email") { type = NavType.StringType })
         ) { backStackEntry ->
             val email = backStackEntry.arguments?.getString("email") ?: ""
-            TelaEditarPerfil(navController, email)
+            TelaRegistroSintomas(navController, email)
         }
 
+        // TELA DE CONFIGURACOES
         composable(
             route = "configuracoes/{email}",
             arguments = listOf(navArgument("email") { type = NavType.StringType })
@@ -116,14 +115,7 @@ fun AppNavigation() {
             TelaConfiguracoes(navController, email)
         }
 
-        composable(
-            route = "trocar_senha/{email}",
-            arguments = listOf(navArgument("email") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val email = backStackEntry.arguments?.getString("email") ?: ""
-            TelaTrocarSenha(navController, email)
-        }
-
+        // TELA DE DADOS MEDICOS
         composable(
             route = "dados_medicos/{email}",
             arguments = listOf(navArgument("email") { type = NavType.StringType })
@@ -132,20 +124,40 @@ fun AppNavigation() {
             TelaDadosMedicos(navController, email)
         }
 
-        composable(
-            route = "notificacoes/{email}",
-            arguments = listOf(navArgument("email") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val email = backStackEntry.arguments?.getString("email") ?: ""
-            TelaNotificacoes(navController, email)
-        }
-
+        // TELA DE ACOMPANHANTES
         composable(
             route = "acompanhantes/{email}",
             arguments = listOf(navArgument("email") { type = NavType.StringType })
         ) { backStackEntry ->
             val email = backStackEntry.arguments?.getString("email") ?: ""
             TelaAcompanhantes(navController, email)
+        }
+
+        // TELA EDITAR PERFIL
+        composable(
+            route = "editar_perfil/{email}",
+            arguments = listOf(navArgument("email") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email") ?: ""
+            TelaEditarPerfil(navController, email)
+        }
+
+        // TELA TROCAR SENHA
+        composable(
+            route = "trocar_senha/{email}",
+            arguments = listOf(navArgument("email") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email") ?: ""
+            TelaTrocarSenha(navController, email)
+        }
+
+        // TELA DE NOTIFICACOES
+        composable(
+            route = "notificacoes/{email}",
+            arguments = listOf(navArgument("email") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email") ?: ""
+            TelaNotificacoes(navController, email)
         }
     }
 }
