@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -34,7 +35,7 @@ fun TelaListaRotinas(navController: NavController, emailUsuario: String) {
     var carregando by remember { mutableStateOf(true) }
     var menuExpandido by remember { mutableStateOf(false) }
 
-    // Observa se precisa atualizar a lista (vindo de outras telas)
+    // Verifica se precisa atualizar a lista (vindo de outras telas)
     val precisaAtualizar = navController.currentBackStackEntry
         ?.savedStateHandle
         ?.getLiveData<Boolean>("refresh")
@@ -71,6 +72,23 @@ fun TelaListaRotinas(navController: NavController, emailUsuario: String) {
                 }
             } catch (e: Exception) {
                 Toast.makeText(context, "Erro ao atualizar status", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    // REUTILIZAR ROTINA
+    fun reutilizarRotina(idRotina: Int) {
+        scope.launch {
+            try {
+                val response = RetrofitClient.api.reutilizarRotina(idRotina)
+                if (response.isSuccessful) {
+                    Toast.makeText(context, "Rotina clonada! Ela já está ativa novamente.", Toast.LENGTH_SHORT).show()
+                    carregarRotinas()
+                } else {
+                    Toast.makeText(context, "Erro ao reutilizar rotina", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(context, "Erro de conexão", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -112,8 +130,7 @@ fun TelaListaRotinas(navController: NavController, emailUsuario: String) {
                         text = { Text("Reutilizar rotina anterior") },
                         onClick = {
                             menuExpandido = false
-                            // tela de historico
-                            Toast.makeText(context, "Funcionalidade em breve", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Procure por uma rotina concluída na lista abaixo e clique em recriar.", Toast.LENGTH_LONG).show()
                         }
                     )
                 }
@@ -151,7 +168,9 @@ fun TelaListaRotinas(navController: NavController, emailUsuario: String) {
                             }
                     ) {
                         Row(
-                            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -170,6 +189,7 @@ fun TelaListaRotinas(navController: NavController, emailUsuario: String) {
                             }
 
                             if (!estaConcluida) {
+                                // Mostra o botao de concluir se estiver ativa
                                 IconButton(onClick = { concluirRotina(rotina.idRotina) }) {
                                     Icon(
                                         imageVector = Icons.Default.CheckCircle,
@@ -178,12 +198,21 @@ fun TelaListaRotinas(navController: NavController, emailUsuario: String) {
                                     )
                                 }
                             } else {
-                                Text(
-                                    text = "CONCLUÍDA",
-                                    color = Color(0xFF2E7D32),
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontSize = 12.sp
-                                )
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(
+                                        text = "CONCLUÍDA",
+                                        color = Color(0xFF2E7D32),
+                                        fontWeight = FontWeight.ExtraBold,
+                                        fontSize = 12.sp
+                                    )
+                                    IconButton(onClick = { reutilizarRotina(rotina.idRotina) }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Refresh,
+                                            contentDescription = "Reutilizar",
+                                            tint = Color(0xFF2E7D32)
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
