@@ -183,6 +183,9 @@ interface ApiService {
 
     @DELETE("acompanhantes/{id}")
     suspend fun revogarAcompanhante(@Path("id") idVinculo: Int): Response<RespostaApi>
+
+    @POST("rotinas/{id}/reutilizar")
+    suspend fun reutilizarRotina(@Path("id") id: Int): Response<RespostaApi>
 }
 
 object RetrofitClient {
