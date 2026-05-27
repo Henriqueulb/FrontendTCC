@@ -17,8 +17,7 @@ data class CadastroRequest(
     @SerializedName("email") val email: String,
     @SerializedName("senha") val senha: String,
     @SerializedName("telefone") val telefone: String,
-    @SerializedName("isAcompanhante") val isAcompanhante: Boolean = false,
-    @SerializedName("codigoConvite") val codigoConvite: String? = null
+    @SerializedName("isAcompanhante") val isAcompanhante: Boolean = false
 )
 
 data class RespostaApi(
@@ -78,7 +77,8 @@ data class NovoSintomaDTO(
 data class PerfilUsuarioDTO(
     @SerializedName("nome") val nome: String,
     @SerializedName("email") val email: String,
-    @SerializedName("telefone") val telefone: String
+    @SerializedName("telefone") val telefone: String,
+    @SerializedName("isAcompanhante") val isAcompanhante: Boolean
 )
 
 data class AtualizarPerfilDTO(
@@ -114,6 +114,17 @@ data class AcompanhanteDTO(
 
 data class CodigoConviteDTO(
     @SerializedName("codigo") val codigo: String
+)
+
+data class VincularAcompanhanteDTO(
+    @SerializedName("emailAcompanhante") val emailAcompanhante: String,
+    @SerializedName("codigoConvite") val codigoConvite: String
+)
+
+data class PacienteVinculadoDTO(
+    @SerializedName("idVinculo") val idVinculo: Int,
+    @SerializedName("nomePaciente") val nomePaciente: String,
+    @SerializedName("emailPaciente") val emailPaciente: String
 )
 
 // Interface
@@ -186,6 +197,12 @@ interface ApiService {
 
     @POST("rotinas/{id}/reutilizar")
     suspend fun reutilizarRotina(@Path("id") id: Int): Response<RespostaApi>
+
+    @POST("acompanhantes/vincular")
+    suspend fun vincularAcompanhante(@Body request: VincularAcompanhanteDTO): Response<RespostaApi>
+
+    @GET("acompanhantes/meus-pacientes/{email}")
+    suspend fun listarPacientesDoAcompanhante(@Path("email") email: String): Response<List<PacienteVinculadoDTO>>
 }
 
 object RetrofitClient {
