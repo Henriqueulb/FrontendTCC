@@ -35,7 +35,7 @@ fun TelaEditarPerfil(navController: NavController, emailUsuario: String) {
                     val dados = response.body()
                     if (dados != null) {
                         nome = dados.nome
-                        telefone = dados.telefone
+                        telefone = dados.telefone.filter { it.isDigit() }
                     }
                 } else {
                     Toast.makeText(context, "Erro ao carregar dados", Toast.LENGTH_SHORT).show()
@@ -121,9 +121,15 @@ fun TelaEditarPerfil(navController: NavController, emailUsuario: String) {
 
                 OutlinedTextField(
                     value = telefone,
-                    onValueChange = { telefone = Mascaras.formatarTelefone(it) },
+                    onValueChange = { novoValor ->
+                        val numeros = novoValor.filter { it.isDigit() }
+                        if (numeros.length <= 11) {
+                            telefone = numeros
+                        }
+                    },
                     label = { Text("Telefone") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    visualTransformation = Mascaras.TelefoneVisualTransformation(),
                     modifier = Modifier.fillMaxWidth()
                 )
 

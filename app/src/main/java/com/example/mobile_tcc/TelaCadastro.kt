@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import androidx.compose.material3.Checkbox
-import androidx.compose.foundation.layout.Row
 
 @Composable
 fun TelaCadastro(navController: NavController) {
@@ -30,22 +29,17 @@ fun TelaCadastro(navController: NavController) {
     var telefone by remember { mutableStateOf("") }
     var carregando by remember { mutableStateOf(false) }
     var isAcompanhante by remember { mutableStateOf(false) }
-    var codigoConvite by remember { mutableStateOf("") }
 
     fun realizarCadastro() {
         if (nome.isBlank() || email.isBlank() || senha.isBlank()) {
             Toast.makeText(context, "Preencha os campos obrigatórios", Toast.LENGTH_SHORT).show()
             return
         }
-        if (isAcompanhante && codigoConvite.isBlank()) {
-            Toast.makeText(context, "Insira o código de convite do paciente", Toast.LENGTH_SHORT).show()
-            return
-        }
 
         scope.launch {
             carregando = true
             try {
-                val request = CadastroRequest(nome, email, senha, telefone, isAcompanhante, codigoConvite.takeIf { isAcompanhante })
+                val request = CadastroRequest(nome, email, senha, telefone, isAcompanhante)
                 val response = RetrofitClient.api.cadastro(request)
 
                 if (response.isSuccessful) {
@@ -94,9 +88,15 @@ fun TelaCadastro(navController: NavController) {
 
         OutlinedTextField(
             value = telefone,
-            onValueChange = { telefone = it },
+            onValueChange = { novoValor ->
+                val numeros = novoValor.filter { it.isDigit() }
+                if (numeros.length <= 11) {
+                    telefone = numeros
+                }
+            },
             label = { Text("Telefone (Opcional)") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+            visualTransformation = Mascaras.TelefoneVisualTransformation(),
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -122,16 +122,6 @@ fun TelaCadastro(navController: NavController) {
                 colors = CheckboxDefaults.colors(checkedColor = Color(0xFF0D47A1))
             )
             Text("Sou um acompanhante")
-        }
-
-        if (isAcompanhante) {
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = codigoConvite,
-                onValueChange = { codigoConvite = it },
-                label = { Text("Código de Convite") },
-                modifier = Modifier.fillMaxWidth()
-            )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
