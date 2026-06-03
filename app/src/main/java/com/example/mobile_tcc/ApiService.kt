@@ -23,7 +23,8 @@ data class CadastroRequest(
 data class RespostaApi(
     @SerializedName("mensagem") val mensagem: String,
     @SerializedName("sucesso") val sucesso: Boolean,
-    @SerializedName("nomeUsuario") val nomeUsuario: String? = null
+    @SerializedName("nomeUsuario") val nomeUsuario: String? = null,
+    @SerializedName("isAcompanhante") val isAcompanhante: Boolean = false
 )
 
 // DTOs Rotina

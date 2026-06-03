@@ -159,5 +159,10 @@ fun AppNavigation() {
             val email = backStackEntry.arguments?.getString("email") ?: ""
             TelaNotificacoes(navController, email)
         }
+
+        composable("selecionar_paciente/{email}") { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email") ?: ""
+            TelaSelecionarPaciente(navController, email)
+        }
     }
 }

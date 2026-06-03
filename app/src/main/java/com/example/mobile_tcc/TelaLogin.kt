@@ -37,9 +37,23 @@ fun TelaLogin(navController: NavController) {
                 val response = RetrofitClient.api.login(request)
 
                 if (response.isSuccessful) {
+                    val dados = response.body()
                     val emailLimpo = email.trim()
-                    navController.navigate("home/$emailLimpo") {
-                        popUpTo("login") { inclusive = true }
+
+                    // Salva nas SharedPreferences se o usuario logado eh um acompanhante
+                    val sharedPrefs = context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
+                    sharedPrefs.edit().putBoolean("isAcompanhante", dados?.isAcompanhante ?: false).apply()
+
+                    if (dados?.isAcompanhante == true) {
+                        // Redireciona o acompanhante para a tela de listagem de pacientes
+                        navController.navigate("selecionar_paciente/$emailLimpo") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    } else {
+                        // direciona o paciente diretamente para a Home dele
+                        navController.navigate("home/$emailLimpo") {
+                            popUpTo("login") { inclusive = true }
+                        }
                     }
                 } else {
                     Toast.makeText(context, "Login falhou. Verifique seus dados.", Toast.LENGTH_SHORT).show()
