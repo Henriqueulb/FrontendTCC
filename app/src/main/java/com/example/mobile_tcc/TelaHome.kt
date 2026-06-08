@@ -35,9 +35,11 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    // Verifica se o usuário atual está logado como acompanhante
+    // Verifica se o usuario atual esta logado como acompanhante
     val sharedPrefs = remember { context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE) }
+    val emailLogado = remember { sharedPrefs.getString("emailLogado", "") ?: "" }
     val isAcompanhante = remember { sharedPrefs.getBoolean("isAcompanhante", false) }
+
 
     var progresso by remember { mutableStateOf(0.0f) }
     var tarefasPendentes by remember { mutableStateOf<List<ItemRotinaDTO>>(emptyList()) }
@@ -47,6 +49,7 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
     fun carregarHome() {
         scope.launch {
             try {
+                // Busca os dados clinicos do paciente que está na rota
                 val response = RetrofitClient.api.getHome(emailUsuario)
                 if (response.isSuccessful) {
                     val dados = response.body()
@@ -120,7 +123,10 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                     icon = { Icon(Icons.Default.Person, contentDescription = "Perfil") },
                     label = { Text("Perfil") },
                     selected = false,
-                    onClick = { navController.navigate("perfil/$emailUsuario") },
+                    onClick = {
+                        val emailParaPerfil = emailLogado.ifEmpty { emailUsuario }
+                        navController.navigate("perfil/$emailParaPerfil")
+                    },
                     colors = NavigationBarItemDefaults.colors(unselectedIconColor = Color.Gray)
                 )
             }
@@ -160,7 +166,8 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                             }
                             TextButton(
                                 onClick = {
-                                    navController.navigate("login") {
+                                    val destino = if (emailLogado.isNotEmpty()) "selecionar_paciente/$emailLogado" else "login"
+                                    navController.navigate(destino) {
                                         popUpTo(0) { inclusive = true }
                                     }
                                 }

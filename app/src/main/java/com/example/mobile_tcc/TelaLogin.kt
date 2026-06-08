@@ -38,19 +38,22 @@ fun TelaLogin(navController: NavController) {
 
                 if (response.isSuccessful) {
                     val dados = response.body()
-                    val emailLimpo = email.trim()
+                    val emailLimpo = email.trim().lowercase()
 
-                    // Salva nas SharedPreferences se o usuario logado eh um acompanhante
                     val sharedPrefs = context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
-                    sharedPrefs.edit().putBoolean("isAcompanhante", dados?.isAcompanhante ?: false).apply()
+                    val editor = sharedPrefs.edit()
+                        .putBoolean("isAcompanhante", dados?.isAcompanhante ?: false)
+                        .putString("emailLogado", emailLimpo)
 
                     if (dados?.isAcompanhante == true) {
-                        // Redireciona o acompanhante para a tela de listagem de pacientes
+                        editor.remove("emailPaciente")
+                        editor.apply()
                         navController.navigate("selecionar_paciente/$emailLimpo") {
                             popUpTo("login") { inclusive = true }
                         }
                     } else {
-                        // direciona o paciente diretamente para a Home dele
+                        editor.putString("emailPaciente", emailLimpo)
+                        editor.apply()
                         navController.navigate("home/$emailLimpo") {
                             popUpTo("login") { inclusive = true }
                         }

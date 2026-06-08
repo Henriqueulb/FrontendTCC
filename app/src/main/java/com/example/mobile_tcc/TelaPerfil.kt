@@ -25,6 +25,8 @@ import androidx.compose.material.icons.filled.Group
 @Composable
 fun TelaPerfil(navController: NavController, emailUsuario: String) {
     val context = LocalContext.current
+    val sharedPrefs = context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
+    val emailPaciente = remember { sharedPrefs.getString("emailPaciente", emailUsuario) ?: emailUsuario }
 
     // Funcao de Logout
     fun realizarLogout() {
@@ -43,21 +45,21 @@ fun TelaPerfil(navController: NavController, emailUsuario: String) {
                     icon = { Icon(Icons.Default.Home, "Home") },
                     label = { Text("Home") },
                     selected = false,
-                    onClick = { navController.navigate("home/$emailUsuario") },
+                    onClick = { navController.navigate("home/$emailPaciente") },
                     colors = NavigationBarItemDefaults.colors(unselectedIconColor = Color.Gray)
                 )
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.List, "Rotina") },
                     label = { Text("Rotina") },
                     selected = false,
-                    onClick = { navController.navigate("rotina/$emailUsuario") },
+                    onClick = { navController.navigate("rotina/$emailPaciente") },
                     colors = NavigationBarItemDefaults.colors(unselectedIconColor = Color.Gray)
                 )
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Face, "Sintomas") },
                     label = { Text("Sintomas") },
                     selected = false,
-                    onClick = { navController.navigate("sintomas/$emailUsuario") },
+                    onClick = { navController.navigate("sintomas/$emailPaciente") },
                     colors = NavigationBarItemDefaults.colors(unselectedIconColor = Color.Gray)
                 )
                 NavigationBarItem(
