@@ -59,7 +59,7 @@ object Mascaras {
 
     class HorarioVisualTransformation : VisualTransformation {
         override fun filter(text: AnnotatedString): TransformedText {
-            // Pega apenas os números digitados
+            // Pega apenas os numeros digitados
             val digits = text.text.filter { it.isDigit() }
             var formatado = ""
 
