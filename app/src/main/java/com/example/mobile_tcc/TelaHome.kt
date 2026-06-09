@@ -49,7 +49,7 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
     fun carregarHome() {
         scope.launch {
             try {
-                // Busca os dados clinicos do paciente que está na rota
+                // Busca os dados clinicos do paciente que esta na rota
                 val response = RetrofitClient.api.getHome(emailUsuario)
                 if (response.isSuccessful) {
                     val dados = response.body()

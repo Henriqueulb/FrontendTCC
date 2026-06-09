@@ -45,7 +45,7 @@ fun TelaSelecionarPaciente(navController: NavController, emailAcompanhante: Stri
         }
     }
 
-    // Função do Passo 2: Vincular novo paciente
+    // Vincular novo paciente
     fun vincularPaciente() {
         if (codigoConvite.isBlank()) {
             Toast.makeText(context, "Digite o código de convite", Toast.LENGTH_SHORT).show()
@@ -59,7 +59,7 @@ fun TelaSelecionarPaciente(navController: NavController, emailAcompanhante: Stri
                 if (response.isSuccessful) {
                     Toast.makeText(context, "Paciente vinculado!", Toast.LENGTH_SHORT).show()
                     codigoConvite = ""
-                    carregarPacientes() // Recarrega a lista para o paciente novo aparecer
+                    carregarPacientes() // Recarrega a lista
                 } else {
                     Toast.makeText(context, "Código inválido ou já utilizado", Toast.LENGTH_SHORT).show()
                 }

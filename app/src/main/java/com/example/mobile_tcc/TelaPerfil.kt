@@ -59,7 +59,7 @@ fun TelaPerfil(navController: NavController, emailUsuario: String) {
                     icon = { Icon(Icons.Default.Face, "Sintomas") },
                     label = { Text("Sintomas") },
                     selected = false,
-                    onClick = { navController.navigate("sintomas/$emailPaciente") },
+                    onClick = { navController.navigate("registro_sintomas/$emailPaciente") },
                     colors = NavigationBarItemDefaults.colors(unselectedIconColor = Color.Gray)
                 )
                 NavigationBarItem(
