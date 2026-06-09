@@ -18,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,12 +27,19 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TelaHome(navController: NavController, emailUsuario: String) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
+    // Verifica se o usuario atual esta logado como acompanhante
+    val sharedPrefs = remember { context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE) }
+    val emailLogado = remember { sharedPrefs.getString("emailLogado", "") ?: "" }
+    val isAcompanhante = remember { sharedPrefs.getBoolean("isAcompanhante", false) }
+
 
     var progresso by remember { mutableStateOf(0.0f) }
     var tarefasPendentes by remember { mutableStateOf<List<ItemRotinaDTO>>(emptyList()) }
@@ -43,6 +49,7 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
     fun carregarHome() {
         scope.launch {
             try {
+                // Busca os dados clinicos do paciente que esta na rota
                 val response = RetrofitClient.api.getHome(emailUsuario)
                 if (response.isSuccessful) {
                     val dados = response.body()
@@ -116,7 +123,10 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                     icon = { Icon(Icons.Default.Person, contentDescription = "Perfil") },
                     label = { Text("Perfil") },
                     selected = false,
-                    onClick = { navController.navigate("perfil/$emailUsuario") },
+                    onClick = {
+                        val emailParaPerfil = emailLogado.ifEmpty { emailUsuario }
+                        navController.navigate("perfil/$emailParaPerfil")
+                    },
                     colors = NavigationBarItemDefaults.colors(unselectedIconColor = Color.Gray)
                 )
             }
@@ -127,6 +137,48 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
             contentPadding = PaddingValues(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Banner informativo superior para o Perfil de Acompanhante
+            if (isAcompanhante) {
+                item {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFCC80)),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Modo Acompanhante",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp,
+                                    color = Color(0xFFE65100)
+                                )
+                                Text(
+                                    text = "Visualizando: $nomeExibicao",
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 15.sp,
+                                    color = Color.Black
+                                )
+                            }
+                            TextButton(
+                                onClick = {
+                                    val destino = if (emailLogado.isNotEmpty()) "selecionar_paciente/$emailLogado" else "login"
+                                    navController.navigate(destino) {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                }
+                            ) {
+                                Text("Trocar", color = Color(0xFFE65100), fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+            }
+
             // Cabecalho
             item {
                 Row(

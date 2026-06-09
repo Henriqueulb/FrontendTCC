@@ -37,9 +37,26 @@ fun TelaLogin(navController: NavController) {
                 val response = RetrofitClient.api.login(request)
 
                 if (response.isSuccessful) {
-                    val emailLimpo = email.trim()
-                    navController.navigate("home/$emailLimpo") {
-                        popUpTo("login") { inclusive = true }
+                    val dados = response.body()
+                    val emailLimpo = email.trim().lowercase()
+
+                    val sharedPrefs = context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
+                    val editor = sharedPrefs.edit()
+                        .putBoolean("isAcompanhante", dados?.isAcompanhante ?: false)
+                        .putString("emailLogado", emailLimpo)
+
+                    if (dados?.isAcompanhante == true) {
+                        editor.remove("emailPaciente")
+                        editor.apply()
+                        navController.navigate("selecionar_paciente/$emailLimpo") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    } else {
+                        editor.putString("emailPaciente", emailLimpo)
+                        editor.apply()
+                        navController.navigate("home/$emailLimpo") {
+                            popUpTo("login") { inclusive = true }
+                        }
                     }
                 } else {
                     Toast.makeText(context, "Login falhou. Verifique seus dados.", Toast.LENGTH_SHORT).show()
