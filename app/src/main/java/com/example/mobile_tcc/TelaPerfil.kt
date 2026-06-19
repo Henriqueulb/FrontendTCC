@@ -171,15 +171,6 @@ fun TelaPerfil(navController: NavController, emailUsuario: String) {
                     subtitulo = "Visualizar relatórios de saúde",
                     onClick = { navController.navigate("relatorio/$emailUsuario") }
                 )
-
-                // Ajuda
-                OpcaoPerfil(
-                    icone = Icons.Outlined.Info,
-                    titulo = "Ajuda",
-                    subtitulo = "FAQ, Suporte",
-                    onClick = { Toast.makeText(context, "Ajuda em breve", Toast.LENGTH_SHORT).show() }
-                )
-
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Botão de Sair Estilizado

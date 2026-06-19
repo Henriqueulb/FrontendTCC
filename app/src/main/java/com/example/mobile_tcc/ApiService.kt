@@ -69,12 +69,6 @@ data class StatusRotinaDTO(
 )
 
 // DTOs Sintomas e Perfil
-data class NovoSintomaDTO(
-    @SerializedName("emailUsuario") val emailUsuario: String,
-    @SerializedName("bemEstar") val bemEstar: Int,
-    @SerializedName("sintomas") val sintomas: Int
-)
-
 data class PerfilUsuarioDTO(
     @SerializedName("nome") val nome: String,
     @SerializedName("email") val email: String,
