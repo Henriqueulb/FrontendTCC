@@ -1,10 +1,11 @@
 package com.example.mobile_tcc
 
 import android.widget.Toast
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -12,17 +13,20 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.mobile_tcc.ui.theme.* // Importando as cores do seu tema
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,7 +39,7 @@ fun TelaListaRotinas(navController: NavController, emailUsuario: String) {
     var carregando by remember { mutableStateOf(true) }
     var menuExpandido by remember { mutableStateOf(false) }
 
-    // Verifica se precisa atualizar a lista (vindo de outras telas)
+    // Verifica se precisa atualizar a lista
     val precisaAtualizar = navController.currentBackStackEntry
         ?.savedStateHandle
         ?.getLiveData<Boolean>("refresh")
@@ -94,40 +98,43 @@ fun TelaListaRotinas(navController: NavController, emailUsuario: String) {
     }
 
     Scaffold(
+        containerColor = Background, // Fundo padronizado
         topBar = {
             TopAppBar(
-                title = { Text("Minhas Rotinas", color = Color.White) },
+                title = { Text("Minhas Rotinas", color = Primary, fontWeight = FontWeight.Bold, fontSize = 20.sp) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigate("home/$emailUsuario") { popUpTo(0) } }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = Color.White)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = OnSurfaceVariant)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF0D47A1))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
             )
         },
         floatingActionButton = {
             Box {
                 FloatingActionButton(
                     onClick = { menuExpandido = true },
-                    containerColor = Color(0xFF0D47A1),
-                    contentColor = Color.White
+                    containerColor = Primary,
+                    contentColor = Color.White,
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Icon(Icons.Default.Add, contentDescription = "Opções de Rotina")
                 }
 
                 DropdownMenu(
                     expanded = menuExpandido,
-                    onDismissRequest = { menuExpandido = false }
+                    onDismissRequest = { menuExpandido = false },
+                    modifier = Modifier.background(Color.White)
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Cadastrar nova rotina") },
+                        text = { Text("Cadastrar nova rotina", color = OnSurface) },
                         onClick = {
                             menuExpandido = false
                             navController.navigate("criar_rotina/$emailUsuario")
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("Reutilizar rotina anterior") },
+                        text = { Text("Reutilizar rotina anterior", color = OnSurface) },
                         onClick = {
                             menuExpandido = false
                             Toast.makeText(context, "Procure por uma rotina concluída na lista abaixo e clique em recriar.", Toast.LENGTH_LONG).show()
@@ -137,85 +144,115 @@ fun TelaListaRotinas(navController: NavController, emailUsuario: String) {
             }
         }
     ) { padding ->
-        if (carregando) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = Color(0xFF0D47A1))
-            }
-        } else if (rotinas.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Você ainda não possui rotinas cadastradas.", color = Color.Gray)
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .padding(padding)
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(rotinas) { rotina ->
-                    val estaConcluida = rotina.status == "CONCLUIDA"
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .padding(horizontal = 20.dp, vertical = 16.dp) // Espaçamento padronizado
+        ) {
+            if (carregando) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = Primary)
+                }
+            } else if (rotinas.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(Icons.Outlined.Folder, contentDescription = null, tint = OutlineVariant, modifier = Modifier.size(64.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Você ainda não possui rotinas cadastradas.", color = OnSurfaceVariant, fontSize = 16.sp)
+                    }
+                }
+            } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(rotinas) { rotina ->
+                        val estaConcluida = rotina.status == "CONCLUIDA"
 
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (estaConcluida) Color(0xFFE8F5E9) else Color(0xFFF0F4F8)
-                        ),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                navController.navigate("rotina_detalhes/$emailUsuario/${rotina.idRotina}")
-                            }
-                    ) {
-                        Row(
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (estaConcluida) SecondaryContainer.copy(alpha = 0.15f) else Color.White
+                            ),
+                            border = BorderStroke(
+                                1.dp,
+                                if (estaConcluida) SecondaryContainer else OutlineVariant
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                             modifier = Modifier
-                                .padding(16.dp)
-                                .fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                                .fillMaxWidth()
+                                .clickable {
+                                    navController.navigate("rotina_detalhes/$emailUsuario/${rotina.idRotina}")
+                                }
                         ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = rotina.nomeRotina,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 18.sp,
-                                    color = if (estaConcluida) Color.Gray else Color.Black
-                                )
-                                Text(
-                                    text = "Criada em: ${rotina.dataCriacao}",
-                                    fontSize = 13.sp,
-                                    color = Color.Gray
-                                )
-                            }
-
-                            if (!estaConcluida) {
-                                // Mostra o botao de concluir se estiver ativa
-                                IconButton(onClick = { concluirRotina(rotina.idRotina) }) {
-                                    Icon(
-                                        imageVector = Icons.Default.CheckCircle,
-                                        contentDescription = "Concluir Rotina",
-                                        tint = Color(0xFF2E7D32)
+                            Row(
+                                modifier = Modifier
+                                    .padding(20.dp)
+                                    .fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = rotina.nomeRotina,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 18.sp,
+                                        color = if (estaConcluida) OnSurfaceVariant else Primary
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "Criada em: ${rotina.dataCriacao}",
+                                        fontSize = 12.sp,
+                                        color = OnSurfaceVariant
                                     )
                                 }
-                            } else {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(
-                                        text = "CONCLUÍDA",
-                                        color = Color(0xFF2E7D32),
-                                        fontWeight = FontWeight.ExtraBold,
-                                        fontSize = 12.sp
-                                    )
-                                    IconButton(onClick = { reutilizarRotina(rotina.idRotina) }) {
+
+                                if (!estaConcluida) {
+                                    // Botão de concluir se estiver ativa
+                                    IconButton(
+                                        onClick = { concluirRotina(rotina.idRotina) },
+                                        modifier = Modifier
+                                            .size(44.dp)
+                                            .background(PrimaryFixed, CircleShape)
+                                    ) {
                                         Icon(
-                                            imageVector = Icons.Default.Refresh,
-                                            contentDescription = "Reutilizar",
-                                            tint = Color(0xFF2E7D32)
+                                            imageVector = Icons.Default.CheckCircle,
+                                            contentDescription = "Concluir Rotina",
+                                            tint = Primary,
+                                            modifier = Modifier.size(24.dp)
                                         )
+                                    }
+                                } else {
+                                    // Info e botão de reutilizar se estiver concluída
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text(
+                                            text = "CONCLUÍDA",
+                                            color = Secondary,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            fontSize = 10.sp
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        IconButton(
+                                            onClick = { reutilizarRotina(rotina.idRotina) },
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .background(Color.White, CircleShape)
+                                                .border(1.dp, SecondaryContainer, CircleShape)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Refresh,
+                                                contentDescription = "Reutilizar",
+                                                tint = Secondary,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+                    item { Spacer(modifier = Modifier.height(80.dp)) } // Previne o FAB de cobrir o último item
                 }
             }
         }

@@ -122,6 +122,14 @@ data class VincularAcompanhanteDTO(
     @SerializedName("codigoConvite") val codigoConvite: String
 )
 
+data class RelatorioDTO(
+    @SerializedName("adesao") val adesao: Float,
+    @SerializedName("sintomas") val sintomas: Int,
+    @SerializedName("diasTratamento") val diasTratamento: Int,
+    @SerializedName("totalDias") val totalDias: Int,
+    @SerializedName("observacoes") val observacoes: String
+)
+
 data class PacienteVinculadoDTO(
     @SerializedName("idVinculo") val idVinculo: Int,
     @SerializedName("nomePaciente") val nomePaciente: String,
@@ -204,10 +212,13 @@ interface ApiService {
 
     @GET("acompanhantes/meus-pacientes/{email}")
     suspend fun listarPacientesDoAcompanhante(@Path("email") email: String): Response<List<PacienteVinculadoDTO>>
+
+    @GET("relatorio/{email}")
+    suspend fun getRelatorio(@Path("email") email: String): Response<RelatorioDTO>
 }
 
 object RetrofitClient {
-    private const val BASE_URL = "http://10.0.2.2:8080/"
+    private const val BASE_URL = "http://192.168.18.67:8080/"
     val api: ApiService by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)

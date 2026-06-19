@@ -1,14 +1,17 @@
 package com.example.mobile_tcc
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DeleteForever
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.mobile_tcc.ui.theme.* // Importando as cores do seu tema
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,15 +60,16 @@ fun TelaConfiguracoes(navController: NavController, emailUsuario: String) {
 
     // UI PRINCIPAL
     Scaffold(
+        containerColor = Background, // Fundo claro padrão
         topBar = {
             TopAppBar(
-                title = { Text("Configurações", color = Color.White) },
+                title = { Text("Configurações", color = Primary, fontWeight = FontWeight.Bold, fontSize = 20.sp) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = Color.White)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = OnSurfaceVariant)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF0D47A1))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
             )
         }
     ) { paddingValues ->
@@ -72,78 +77,118 @@ fun TelaConfiguracoes(navController: NavController, emailUsuario: String) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
+                .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
+            // Bloco de Configurações Agrupado em um Card
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                border = BorderStroke(1.dp, OutlineVariant),
+                shape = RoundedCornerShape(12.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column {
+                    // Trocar Senha
+                    ItemConfiguracao(
+                        icone = Icons.Outlined.Lock,
+                        titulo = "Trocar Senha",
+                        onClick = { navController.navigate("trocar_senha/$emailUsuario") }
+                    )
 
-            // Trocar Senha
-            ItemConfiguracao(
-                icone = Icons.Default.Lock,
-                titulo = "Trocar Senha",
-                onClick = { navController.navigate("trocar_senha/$emailUsuario") }
-            )
+                    HorizontalDivider(color = OutlineVariant.copy(alpha = 0.5f))
 
-            Divider()
-
-            // Notificacoes
-            ItemConfiguracao(
-                icone = Icons.Default.Notifications,
-                titulo = "Notificações",
-                onClick = { navController.navigate("notificacoes/$emailUsuario") }
-            )
-
-            Divider()
+                    // Notificações
+                    ItemConfiguracao(
+                        icone = Icons.Outlined.Notifications,
+                        titulo = "Notificações",
+                        onClick = { navController.navigate("notificacoes/$emailUsuario") }
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(32.dp))
 
             // Deletar Conta
             Button(
                 onClick = { mostrarDialogExclusao = true },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEBEE)),
-                modifier = Modifier.fillMaxWidth(),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color.Red)
+                colors = ButtonDefaults.buttonColors(containerColor = ErrorContainer),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp), // Altura aprimorada
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
             ) {
-                Icon(Icons.Default.DeleteForever, null, tint = Color.Red)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Deletar Minha Conta", color = Color.Red)
+                if (carregando) {
+                    CircularProgressIndicator(color = ErrorColor, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                } else {
+                    Icon(Icons.Default.DeleteForever, null, tint = ErrorColor)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Deletar Minha Conta", color = ErrorColor, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                }
             }
         }
     }
 
-    //  DIALOG DE CONFIRMACAO
+    // DIALOG DE CONFIRMAÇÃO
     if (mostrarDialogExclusao) {
         AlertDialog(
             onDismissRequest = { mostrarDialogExclusao = false },
-            title = { Text("Tem certeza?") },
-            text = { Text("Essa ação apagará todos os seus dados, histórico e rotinas permanentemente. Não é possível desfazer.") },
+            containerColor = Color.White,
+            title = {
+                Text("Tem certeza?", fontWeight = FontWeight.Bold, color = OnSurface)
+            },
+            text = {
+                Text(
+                    text = "Essa ação apagará todos os seus dados, histórico e rotinas permanentemente. Não é possível desfazer.",
+                    color = OnSurfaceVariant
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = { deletarConta() },
-                    colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
+                    colors = ButtonDefaults.textButtonColors(contentColor = ErrorColor)
                 ) {
-                    Text("SIM, DELETAR")
+                    Text("SIM, DELETAR", fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { mostrarDialogExclusao = false }) {
-                    Text("Cancelar")
+                TextButton(
+                    onClick = { mostrarDialogExclusao = false },
+                    colors = ButtonDefaults.textButtonColors(contentColor = OnSurfaceVariant)
+                ) {
+                    Text("Cancelar", fontWeight = FontWeight.SemiBold)
                 }
             }
         )
     }
 }
 
+// COMPONENTE DE ITEM DE MENU ADAPTADO
 @Composable
 fun ItemConfiguracao(icone: ImageVector, titulo: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(vertical = 16.dp, horizontal = 8.dp),
+            .padding(vertical = 16.dp, horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icone, null, tint = Color(0xFF0D47A1))
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .background(PrimaryFixed, RoundedCornerShape(8.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icone, null, tint = Primary, modifier = Modifier.size(20.dp))
+        }
         Spacer(modifier = Modifier.width(16.dp))
-        Text(titulo, fontSize = 16.sp, modifier = Modifier.weight(1f))
-        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = Color.Gray)
+        Text(
+            text = titulo,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = OnSurface,
+            modifier = Modifier.weight(1f)
+        )
+        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = OutlineVariant)
     }
 }
