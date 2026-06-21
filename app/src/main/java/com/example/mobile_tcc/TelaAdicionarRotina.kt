@@ -2,17 +2,22 @@ package com.example.mobile_tcc
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.mobile_tcc.ui.theme.* // Importando as cores do seu tema
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -70,16 +75,30 @@ fun TelaAdicionarRotina(navController: NavController, idRotina: Int) {
         }
     }
 
+    // Estilo padronizado para todos os TextFields desta tela
+    val textFieldColors = OutlinedTextFieldDefaults.colors(
+        focusedBorderColor = Primary,
+        unfocusedBorderColor = OutlineVariant,
+        focusedLabelColor = Primary,
+        unfocusedLabelColor = OnSurfaceVariant,
+        cursorColor = Primary,
+        errorBorderColor = ErrorColor,
+        errorLabelColor = ErrorColor,
+        errorCursorColor = ErrorColor
+    )
+    val textFieldShape = RoundedCornerShape(12.dp)
+
     Scaffold(
+        containerColor = Background, // Fundo claro do HTML
         topBar = {
             TopAppBar(
-                title = { Text("Novo Cuidado", color = Color.White) },
+                title = { Text("Novo Cuidado", color = Primary, fontWeight = FontWeight.Bold, fontSize = 20.sp) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = Color.White)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = OnSurfaceVariant)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF0D47A1))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
             )
         }
     ) { padding ->
@@ -87,7 +106,7 @@ fun TelaAdicionarRotina(navController: NavController, idRotina: Int) {
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             OutlinedTextField(
@@ -100,7 +119,9 @@ fun TelaAdicionarRotina(navController: NavController, idRotina: Int) {
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 isError = erroNome,
-                supportingText = { if (erroNome) Text("O nome é obrigatório") }
+                supportingText = { if (erroNome) Text("O nome é obrigatório") },
+                shape = textFieldShape,
+                colors = textFieldColors
             )
 
             OutlinedTextField(
@@ -117,8 +138,9 @@ fun TelaAdicionarRotina(navController: NavController, idRotina: Int) {
                 isError = erroHorario,
                 supportingText = { if (erroHorario) Text("Digite 4 números para o horário") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-
-                visualTransformation = Mascaras.HorarioVisualTransformation()
+                visualTransformation = Mascaras.HorarioVisualTransformation(),
+                shape = textFieldShape,
+                colors = textFieldColors
             )
 
             OutlinedTextField(
@@ -131,7 +153,9 @@ fun TelaAdicionarRotina(navController: NavController, idRotina: Int) {
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 isError = erroDose,
-                supportingText = { if (erroDose) Text("Informar a dose é obrigatória") }
+                supportingText = { if (erroDose) Text("Informar a dose é obrigatória") },
+                shape = textFieldShape,
+                colors = textFieldColors
             )
 
             OutlinedTextField(
@@ -139,7 +163,9 @@ fun TelaAdicionarRotina(navController: NavController, idRotina: Int) {
                 onValueChange = { descricao = it },
                 label = { Text("Descrição / Observação (Opcional)") },
                 modifier = Modifier.fillMaxWidth(),
-                minLines = 3
+                minLines = 3,
+                shape = textFieldShape,
+                colors = textFieldColors
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -148,16 +174,23 @@ fun TelaAdicionarRotina(navController: NavController, idRotina: Int) {
                 onClick = { salvarCuidado() },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D47A1)),
+                    .height(54.dp), // Altura melhorada para clique
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Primary,
+                    disabledContainerColor = Primary.copy(alpha = 0.5f)
+                ),
+                shape = RoundedCornerShape(12.dp),
                 enabled = !carregando
             ) {
                 if (carregando) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
                 } else {
-                    Text("SALVAR CUIDADO", color = Color.White)
+                    Text("SALVAR CUIDADO", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 }
             }
+
+            // Pequeno respiro na parte inferior
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

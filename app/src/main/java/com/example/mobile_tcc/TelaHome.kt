@@ -1,16 +1,20 @@
 package com.example.mobile_tcc
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,6 +22,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -26,8 +32,20 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.border
+
+
+// CORES EXTRAÍDAS DO (Tailwind Config)
+private val ColorBackground = Color(0xFFF7F9FB)
+private val ColorSurfaceLowest = Color(0xFFFFFFFF)
+private val ColorOnSurface = Color(0xFF191C1E)
+private val ColorOnSurfaceVariant = Color(0xFF424654)
+private val ColorPrimary = Color(0xFF0040A1)
+private val ColorPrimaryContainer = Color(0xFF0056D2)
+private val ColorOutlineVariant = Color(0xFFC3C6D6)
+private val ColorSecondaryContainer = Color(0xFFA0F399)
+private val ColorSecondary = Color(0xFF1B6D24)
+private val ColorPrimaryFixed = Color(0xFFDAE2FF)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +57,6 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
     val sharedPrefs = remember { context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE) }
     val emailLogado = remember { sharedPrefs.getString("emailLogado", "") ?: "" }
     val isAcompanhante = remember { sharedPrefs.getBoolean("isAcompanhante", false) }
-
 
     var progresso by remember { mutableStateOf(0.0f) }
     var tarefasPendentes by remember { mutableStateOf<List<ItemRotinaDTO>>(emptyList()) }
@@ -96,28 +113,40 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
     }
 
     Scaffold(
+        containerColor = ColorBackground, // Fundo claro geral do HTML
         bottomBar = {
-            NavigationBar(containerColor = Color.White, tonalElevation = 8.dp) {
+            // Barra de navegação com as cores do novo design
+            NavigationBar(
+                containerColor = ColorSurfaceLowest,
+                tonalElevation = 8.dp,
+                modifier = Modifier.border(1.dp, ColorOutlineVariant.copy(alpha = 0.5f))
+            ) {
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
                     label = { Text("Home") },
                     selected = true,
                     onClick = { /* Já estamos na Home */ },
-                    colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF0D47A1))
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = ColorPrimaryContainer,
+                        indicatorColor = ColorPrimaryContainer.copy(alpha = 0.2f),
+                        selectedTextColor = ColorPrimaryContainer,
+                        unselectedIconColor = ColorOnSurfaceVariant,
+                        unselectedTextColor = ColorOnSurfaceVariant
+                    )
                 )
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.List, contentDescription = "Rotina") },
                     label = { Text("Rotina") },
                     selected = false,
                     onClick = { navController.navigate("rotina/$emailUsuario") },
-                    colors = NavigationBarItemDefaults.colors(unselectedIconColor = Color.Gray)
+                    colors = NavigationBarItemDefaults.colors(unselectedIconColor = ColorOnSurfaceVariant, unselectedTextColor = ColorOnSurfaceVariant)
                 )
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Face, contentDescription = "Sintomas") },
                     label = { Text("Sintomas") },
                     selected = false,
                     onClick = { navController.navigate("registro_sintomas/$emailUsuario") },
-                    colors = NavigationBarItemDefaults.colors(unselectedIconColor = Color.Gray)
+                    colors = NavigationBarItemDefaults.colors(unselectedIconColor = ColorOnSurfaceVariant, unselectedTextColor = ColorOnSurfaceVariant)
                 )
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Person, contentDescription = "Perfil") },
@@ -127,21 +156,22 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                         val emailParaPerfil = emailLogado.ifEmpty { emailUsuario }
                         navController.navigate("perfil/$emailParaPerfil")
                     },
-                    colors = NavigationBarItemDefaults.colors(unselectedIconColor = Color.Gray)
+                    colors = NavigationBarItemDefaults.colors(unselectedIconColor = ColorOnSurfaceVariant, unselectedTextColor = ColorOnSurfaceVariant)
                 )
             }
         }
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(paddingValues),
-            contentPadding = PaddingValues(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 24.dp), // Ajustado para o padding do HTML
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // Banner informativo superior para o Perfil de Acompanhante
+            // Banner Acompanhante adaptado ao design
             if (isAcompanhante) {
                 item {
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFCC80)),
+                        colors = CardDefaults.cardColors(containerColor = ColorSecondaryContainer.copy(alpha = 0.3f)),
+                        border = BorderStroke(1.dp, ColorSecondaryContainer),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                         shape = RoundedCornerShape(12.dp)
                     ) {
@@ -155,13 +185,13 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                                     text = "Modo Acompanhante",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 12.sp,
-                                    color = Color(0xFFE65100)
+                                    color = ColorSecondary
                                 )
                                 Text(
                                     text = "Visualizando: $nomeExibicao",
-                                    fontWeight = FontWeight.Medium,
-                                    fontSize = 15.sp,
-                                    color = Color.Black
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    color = ColorOnSurface
                                 )
                             }
                             TextButton(
@@ -172,110 +202,222 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                                     }
                                 }
                             ) {
-                                Text("Trocar", color = Color(0xFFE65100), fontWeight = FontWeight.Bold)
+                                Text("Trocar", color = ColorSecondary, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
                 }
             }
 
-            // Cabecalho
+            // Cabeçalho (Olá, Nome) adaptado ao design do novo HTML
             item {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.AccountCircle,
-                        contentDescription = "Foto",
-                        modifier = Modifier.size(64.dp),
-                        tint = Color.Gray
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column {
-                        Text(text = "Olá,", fontSize = 16.sp, color = Color.Gray)
-                        Text(text = nomeExibicao, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0D47A1))
-                    }
-                }
-            }
-
-            // Progresso
-            item {
-                Text("Seu Progresso Hoje", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(8.dp))
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD)),
-                    shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(modifier = Modifier.padding(20.dp)) {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Aderência", fontWeight = FontWeight.SemiBold, color = Color(0xFF0D47A1))
-                            Text("${(progresso * 100).toInt()}%", fontWeight = FontWeight.Bold, color = Color(0xFF0D47A1))
-                        }
-                        Spacer(modifier = Modifier.height(12.dp))
-                        LinearProgressIndicator(
-                            progress = { progresso },
-                            modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)),
-                            color = Color(0xFF0D47A1),
-                            trackColor = Color.White,
-                            strokeCap = StrokeCap.Round
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(CircleShape)
+                            .background(ColorOutlineVariant.copy(alpha = 0.3f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AccountCircle,
+                            contentDescription = "Foto",
+                            modifier = Modifier.size(48.dp),
+                            tint = ColorOnSurfaceVariant
                         )
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text(text = "Olá,", fontSize = 14.sp, color = ColorOnSurfaceVariant)
+                        Text(text = nomeExibicao, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = ColorPrimary)
                     }
                 }
             }
 
-            // Lista Pendente
+            // Seu Progresso Hoje (Círculo de Progresso do novo HTML)
             item {
-                Text("Próximos Cuidados", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = ColorSurfaceLowest),
+                    border = BorderStroke(1.dp, ColorOutlineVariant),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(24.dp).fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Seu Progresso Hoje",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = ColorOnSurface,
+                            modifier = Modifier.align(Alignment.Start)
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // Círculo de Progresso igual ao HTML
+                        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(150.dp)) {
+                            CircularProgressIndicator(
+                                progress = { 1f },
+                                modifier = Modifier.fillMaxSize(),
+                                color = ColorOutlineVariant.copy(alpha = 0.3f),
+                                strokeWidth = 12.dp,
+                                strokeCap = StrokeCap.Round
+                            )
+                            CircularProgressIndicator(
+                                progress = { progresso },
+                                modifier = Modifier.fillMaxSize(),
+                                color = ColorPrimary,
+                                strokeWidth = 12.dp,
+                                strokeCap = StrokeCap.Round
+                            )
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "${(progresso * 100).toInt()}%",
+                                    fontSize = 32.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = ColorPrimary
+                                )
+                                Text(
+                                    text = "Aderência",
+                                    fontSize = 12.sp,
+                                    color = ColorOnSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
+            // Próximos Cuidados
+            // CABEÇALHO DA LISTA DE TAREFAS ("Próximos Cuidados" e "Ver tudo")
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Próximos Cuidados",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = ColorOnSurface
+                    )
+                    Text(
+                        text = "Ver tudo",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = ColorPrimary,
+                        modifier = Modifier.clickable { navController.navigate("rotina/$emailUsuario") }
+                    )
+                }
+            }
+
+            // LÓGICA E DESIGN DOS CARDS DE MEDICAÇÃO
             if (carregando) {
-                item { Box(modifier = Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() } }
+                item {
+                    Box(modifier = Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = ColorPrimary)
+                    }
+                }
             } else if (tarefasPendentes.isEmpty()) {
                 item {
-                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFFF1F8E9)), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
-                        Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = ColorSurfaceLowest),
+                        border = BorderStroke(1.dp, ColorOutlineVariant),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
                             Text("🎉", fontSize = 28.sp)
                             Spacer(modifier = Modifier.width(16.dp))
-                            Text("Tudo concluído por hoje!", color = Color(0xFF2E7D32), fontWeight = FontWeight.Medium)
+                            Text("Tudo concluído por hoje!", color = ColorOnSurfaceVariant, fontWeight = FontWeight.Medium)
                         }
                     }
                 }
             } else {
                 items(tarefasPendentes) { item ->
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3E0)),
-                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = ColorSurfaceLowest),
+                        border = BorderStroke(1.dp, ColorOutlineVariant),
+                        shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth().clickable { navController.navigate("rotina/$emailUsuario") }
                     ) {
                         Row(
-                            modifier = Modifier.padding(20.dp).fillMaxWidth(),
+                            modifier = Modifier.padding(16.dp).fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(item.titulo, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFFE65100))
-                                Text("Horário: ${item.horario}", fontSize = 14.sp, color = Color.Black)
-                                if (!item.dose.isNullOrBlank()) Text("Dose: ${item.dose}", fontSize = 14.sp, color = Color.Gray)
+                            // LADO ESQUERDO: Ícone e Nomes
+                            Row(
+                                modifier = Modifier.weight(1f),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // Quadradinho do Ícone Médico
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(ColorPrimaryFixed),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.MedicalServices, // Ícone de Saúde/Medicamento
+                                        contentDescription = "Medicamento",
+                                        tint = ColorPrimary
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(16.dp))
+
+                                // Título e Dose
+                                Column {
+                                    Text(
+                                        text = item.titulo,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = ColorOnSurface
+                                    )
+                                    if (!item.dose.isNullOrBlank()) {
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text(
+                                            text = "Dose: ${item.dose}", // Adicionado o prefixo "Dose:" para ficar igual ao seu print antigo
+                                            fontSize = 12.sp,
+                                            color = ColorOnSurfaceVariant
+                                        )
+                                    }
+                                }
                             }
 
-                            Checkbox(
-                                checked = item.feita,
-                                onCheckedChange = { isChecked ->
-                                    atualizarStatusTarefa(item.id, isChecked)
-                                },
-                                colors = CheckboxDefaults.colors(
-                                    checkedColor = Color(0xFFE65100),
-                                    uncheckedColor = Color(0xFFE65100),
-                                    checkmarkColor = Color.White
+                            // LADO DIREITO: Apenas o Horário e o Checkbox
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = item.horario,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = ColorPrimary
                                 )
-                            )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Checkbox(
+                                    checked = item.feita,
+                                    onCheckedChange = { isChecked ->
+                                        atualizarStatusTarefa(item.id, isChecked)
+                                    },
+                                    colors = CheckboxDefaults.colors(
+                                        checkedColor = ColorPrimary,
+                                        uncheckedColor = ColorOutlineVariant,
+                                        checkmarkColor = Color.White
+                                    )
+                                )
+                            }
                         }
                     }
                 }
             }
-            item { Spacer(modifier = Modifier.height(16.dp)) }
         }
     }
 }
