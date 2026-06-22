@@ -158,6 +158,22 @@ fun TelaLogin(navController: NavController) {
                     navController.navigate("cadastro")
                 }
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Esqueci minha senha",
+                color = Primary,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.clickable {
+                    if (email.isNotBlank()) {
+                        navController.navigate("trocar_senha/$email")
+                    } else {
+                        Toast.makeText(context, "Digite seu e-mail acima para trocar a senha", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            )
         }
     }
 }
