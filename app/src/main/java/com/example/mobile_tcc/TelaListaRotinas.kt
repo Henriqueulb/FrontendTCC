@@ -38,6 +38,7 @@ fun TelaListaRotinas(navController: NavController, emailUsuario: String) {
     var rotinas by remember { mutableStateOf<List<RotinaResumoDTO>>(emptyList()) }
     var carregando by remember { mutableStateOf(true) }
     var menuExpandido by remember { mutableStateOf(false) }
+    var mostrarConcluidas by remember { mutableStateOf(false) }
 
     // Verifica se precisa atualizar a lista
     val precisaAtualizar = navController.currentBackStackEntry
@@ -87,6 +88,7 @@ fun TelaListaRotinas(navController: NavController, emailUsuario: String) {
                 val response = RetrofitClient.api.reutilizarRotina(idRotina)
                 if (response.isSuccessful) {
                     Toast.makeText(context, "Rotina clonada! Ela já está ativa novamente.", Toast.LENGTH_SHORT).show()
+                    mostrarConcluidas = false // OCULTA AS CONCLUÍDAS APÓS REUTILIZAR
                     carregarRotinas()
                 } else {
                     Toast.makeText(context, "Erro ao reutilizar rotina", Toast.LENGTH_SHORT).show()
@@ -134,10 +136,10 @@ fun TelaListaRotinas(navController: NavController, emailUsuario: String) {
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("Reutilizar rotina anterior", color = OnSurface) },
+                        text = { Text(if (mostrarConcluidas) "Ocultar concluídas" else "Reutilizar rotina anterior", color = OnSurface) },
                         onClick = {
                             menuExpandido = false
-                            Toast.makeText(context, "Procure por uma rotina concluída na lista abaixo e clique em recriar.", Toast.LENGTH_LONG).show()
+                            mostrarConcluidas = !mostrarConcluidas
                         }
                     )
                 }
@@ -163,12 +165,27 @@ fun TelaListaRotinas(navController: NavController, emailUsuario: String) {
                     }
                 }
             } else {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(rotinas) { rotina ->
-                        val estaConcluida = rotina.status == "CONCLUIDA"
+                val rotinasFiltradas = if (mostrarConcluidas) {
+                    rotinas
+                } else {
+                    rotinas.filter { it.status != "CONCLUIDA" }
+                }
+
+                if (rotinasFiltradas.isEmpty() && !mostrarConcluidas) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(Icons.Outlined.Folder, contentDescription = null, tint = OutlineVariant, modifier = Modifier.size(64.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text("Não há rotinas ativas no momento.", color = OnSurfaceVariant, fontSize = 16.sp)
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(rotinasFiltradas) { rotina ->
+                            val estaConcluida = rotina.status == "CONCLUIDA"
 
                         Card(
                             colors = CardDefaults.cardColors(
@@ -257,4 +274,5 @@ fun TelaListaRotinas(navController: NavController, emailUsuario: String) {
             }
         }
     }
+}
 }

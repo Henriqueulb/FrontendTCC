@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
@@ -39,9 +41,6 @@ android {
     buildFeatures {
         compose = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
-    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -63,8 +62,10 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.navigation.runtime.android)
+    implementation(libs.kotlinx.serialization.json)
     implementation("androidx.navigation:navigation-compose:2.8.3")
     implementation("androidx.compose.runtime:runtime-livedata:1.7.5")
+    implementation("androidx.webkit:webkit:1.10.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -72,4 +73,5 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
 }

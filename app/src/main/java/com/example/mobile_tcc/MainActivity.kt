@@ -45,10 +45,10 @@ fun AppNavigation() {
             val email = backStackEntry.arguments?.getString("email") ?: ""
             TelaHome(navController, email)
         }
-        //TELA RELATPRIO
+        //TELA RELAToRIO
         composable("relatorio/{email}") { backStackEntry ->
             val email = backStackEntry.arguments?.getString("email") ?: ""
-            TelaRelatorio(navController)
+            TelaRelatorio(navController, email) // Passe o e-mail!
         }
 
 
