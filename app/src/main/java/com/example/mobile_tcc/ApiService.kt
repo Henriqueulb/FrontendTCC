@@ -6,7 +6,10 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 
+import kotlinx.serialization.Serializable
+
 // DTOs Gerais
+@Serializable
 data class LoginRequest(
     @SerializedName("email") val email: String,
     @SerializedName("senha") val senha: String
@@ -28,6 +31,7 @@ data class RespostaApi(
 )
 
 // DTOs Rotina
+@Serializable
 data class RotinaResumoDTO(
     @SerializedName("idRotina") val idRotina: Int,
     @SerializedName("nomeRotina") val nomeRotina: String,
@@ -48,6 +52,7 @@ data class NovoItemRotinaDTO(
     @SerializedName("descricao") val descricao: String?
 )
 
+@Serializable
 data class ItemRotinaDTO(
     @SerializedName("id") val id: Int,
     @SerializedName("titulo") val titulo: String,
@@ -69,12 +74,7 @@ data class StatusRotinaDTO(
 )
 
 // DTOs Sintomas e Perfil
-data class NovoSintomaDTO(
-    @SerializedName("emailUsuario") val emailUsuario: String,
-    @SerializedName("bemEstar") val bemEstar: Int,
-    @SerializedName("sintomas") val sintomas: Int
-)
-
+@Serializable
 data class PerfilUsuarioDTO(
     @SerializedName("nome") val nome: String,
     @SerializedName("email") val email: String,
@@ -93,6 +93,7 @@ data class TrocarSenhaDTO(
     @SerializedName("novaSenha") val novaSenha: String
 )
 
+@Serializable
 data class FichaMedicaDTO(
     @SerializedName("emailUsuario") val emailUsuario: String,
     @SerializedName("alergias") val alergias: String,
@@ -106,6 +107,7 @@ data class NotificacaoConfigDTO(
     @SerializedName("som") val som: Boolean
 )
 
+@Serializable
 data class AcompanhanteDTO(
     @SerializedName("idVinculo") val idVinculo: Int,
     @SerializedName("nomeAcompanhante") val nomeAcompanhante: String,
@@ -122,6 +124,18 @@ data class VincularAcompanhanteDTO(
     @SerializedName("codigoConvite") val codigoConvite: String
 )
 
+data class RelatorioDTO(
+    @SerializedName("mediaBemEstar") val mediaBemEstar: Double,
+    @SerializedName("totalRegistros") val totalRegistros: Int,
+    @SerializedName("sintomasMaisComuns") val sintomasMaisComuns: List<SintomaDTO>
+
+)
+
+
+data class SintomaDTO(
+    @SerializedName("nome") val nome: String,
+    @SerializedName("contagem") val contagem: Int
+)
 data class PacienteVinculadoDTO(
     @SerializedName("idVinculo") val idVinculo: Int,
     @SerializedName("nomePaciente") val nomePaciente: String,
@@ -204,10 +218,19 @@ interface ApiService {
 
     @GET("acompanhantes/meus-pacientes/{email}")
     suspend fun listarPacientesDoAcompanhante(@Path("email") email: String): Response<List<PacienteVinculadoDTO>>
+
+    @GET("relatorio/detalhado/{email}")
+    suspend fun getRelatorioDetalhado(
+        @Path("email") email: String,
+        @Query("dias") dias: Int
+    ): Response<RelatorioCompletoDTO>
+
+    @GET("relatorio/{email}")
+    suspend fun getRelatorio(@Path("email") email: String): Response<RelatorioDTO>
 }
 
 object RetrofitClient {
-    private const val BASE_URL = "http://10.0.2.2:8080/"
+    private const val BASE_URL = "http://192.168.18.67:8080/"
     val api: ApiService by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)

@@ -2,24 +2,30 @@ package com.example.mobile_tcc
 
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.mobile_tcc.ui.theme.*
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,6 +46,7 @@ fun TelaAcompanhantes(navController: NavController, emailUsuario: String) {
     var listaPacientes by remember { mutableStateOf<List<PacienteVinculadoDTO>>(emptyList()) }
     var pacienteSelecionadoId by remember { mutableStateOf<Int?>(null) }
 
+    // === FUNÇÕES DE LÓGICA (RETROFIT) - REVISADAS E CORRIGIDAS ===
     fun carregarDados() {
         scope.launch {
             try {
@@ -66,7 +73,6 @@ fun TelaAcompanhantes(navController: NavController, emailUsuario: String) {
                     val responsePacientes = RetrofitClient.api.listarPacientesDoAcompanhante(emailUsuario)
                     if (responsePacientes.isSuccessful) {
                         listaPacientes = responsePacientes.body() ?: emptyList()
-                        // Opcional: Auto-selecionar o primeiro paciente da lista
                         if (listaPacientes.isNotEmpty() && pacienteSelecionadoId == null) {
                             pacienteSelecionadoId = listaPacientes.first().idVinculo
                         }
@@ -81,8 +87,6 @@ fun TelaAcompanhantes(navController: NavController, emailUsuario: String) {
         }
     }
 
-    LaunchedEffect(Unit) { carregarDados() }
-
     fun vincularPaciente() {
         if (codigoInput.isBlank()) {
             Toast.makeText(context, "Digite o código do paciente", Toast.LENGTH_SHORT).show()
@@ -96,7 +100,7 @@ fun TelaAcompanhantes(navController: NavController, emailUsuario: String) {
                 if (response.isSuccessful) {
                     Toast.makeText(context, "Vinculado ao paciente com sucesso!", Toast.LENGTH_LONG).show()
                     codigoInput = ""
-                    carregarDados() // Recarrega a lista para mostrar o novo paciente
+                    carregarDados() // Recarrega a lista
                 } else {
                     Toast.makeText(context, "Código inválido ou já utilizado", Toast.LENGTH_SHORT).show()
                 }
@@ -122,7 +126,6 @@ fun TelaAcompanhantes(navController: NavController, emailUsuario: String) {
         }
     }
 
-    // Funcao para o acompanhante parar de seguir o paciente
     fun pararDeAcompanhar(idVinculo: Int) {
         scope.launch {
             try {
@@ -138,16 +141,27 @@ fun TelaAcompanhantes(navController: NavController, emailUsuario: String) {
         }
     }
 
+    // === EFEITO COLATERAL (ATIVA O CARREGAMENTO) ===
+    LaunchedEffect(Unit) {
+        carregarDados()
+    }
+
+    // Estilos padronizados
+    val textFieldColors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Primary)
+    val textFieldShape = RoundedCornerShape(12.dp)
+
+    // === UI PRINCIPAL (O QUE É EXIBIDO) ===
     Scaffold(
+        containerColor = Background, // Fundo claro do tema
         topBar = {
             TopAppBar(
-                title = { Text("Acompanhantes", color = Color.White) },
+                title = { Text("Acompanhantes", color = Primary, fontWeight = FontWeight.Bold, fontSize = 20.sp) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = Color.White)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = OnSurfaceVariant)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF0D47A1))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
             )
         }
     ) { paddingValues ->
@@ -155,16 +169,16 @@ fun TelaAcompanhantes(navController: NavController, emailUsuario: String) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
+                .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
-            if (carregando && codigoAtual == "Gerando...") {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+            if (carregando) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = Primary)
                 }
             } else if (isAcompanhante) {
-                // VISAO DO ACOMPANHANTE
-                Text("Vincular a um Novo Paciente", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0D47A1))
-                Spacer(modifier = Modifier.height(8.dp))
+                // VISAO DO ACOMPANHANTE (Vincular e Pacientes)
+                Text("Vincular a um Novo Paciente", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Primary)
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     OutlinedTextField(
@@ -172,62 +186,76 @@ fun TelaAcompanhantes(navController: NavController, emailUsuario: String) {
                         onValueChange = { codigoInput = it.uppercase() },
                         label = { Text("Código do Paciente") },
                         modifier = Modifier.weight(1f),
-                        singleLine = true
+                        singleLine = true,
+                        shape = textFieldShape,
+                        colors = textFieldColors
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
                         onClick = { vincularPaciente() },
                         modifier = Modifier.height(56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D47A1)),
+                        colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                        shape = RoundedCornerShape(12.dp),
                         enabled = !carregando
                     ) {
                         Text("VINCULAR")
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
-                Divider()
+                Spacer(modifier = Modifier.height(32.dp))
+                HorizontalDivider(color = OutlineVariant)
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text("Pacientes Acompanhados", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0D47A1))
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Selecione um paciente para gerenciar a rotina dele:", fontSize = 14.sp, color = Color.Gray)
+                Text("Pacientes Acompanhados", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Primary)
                 Spacer(modifier = Modifier.height(16.dp))
 
                 if (listaPacientes.isEmpty()) {
-                    Text("Você ainda não está acompanhando nenhum paciente.", color = Color.Gray)
+                    Box(modifier = Modifier.fillMaxWidth().padding(top = 24.dp), contentAlignment = Alignment.Center) {
+                        Text("Você ainda não está acompanhando nenhum paciente.", color = OnSurfaceVariant)
+                    }
                 } else {
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxSize()) {
                         items(listaPacientes) { paciente ->
                             val isSelected = paciente.idVinculo == pacienteSelecionadoId
 
                             Card(
                                 colors = CardDefaults.cardColors(
-                                    containerColor = if (isSelected) Color(0xFFE3F2FD) else Color.White
+                                    containerColor = if (isSelected) PrimaryFixed else Color.White
                                 ),
-                                border = if (isSelected) BorderStroke(2.dp, Color(0xFF0D47A1)) else null,
-                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                                border = BorderStroke(1.dp, if (isSelected) Primary else OutlineVariant),
+                                shape = RoundedCornerShape(12.dp),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable { pacienteSelecionadoId = paciente.idVinculo } // Alterna o paciente ativo
                             ) {
                                 Row(
                                     modifier = Modifier.padding(16.dp).fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Text(paciente.nomePaciente, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                            if (isSelected) {
-                                                Spacer(modifier = Modifier.width(8.dp))
-                                                Icon(Icons.Default.CheckCircle, contentDescription = "Ativo", tint = Color(0xFF0D47A1), modifier = Modifier.size(18.dp))
-                                            }
-                                        }
-                                        Text(paciente.emailPaciente, fontSize = 14.sp, color = Color.Gray)
+                                    // Quadradinho do Ícone
+                                    Box(
+                                        modifier = Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)).background(if (isSelected) Color.White else PrimaryFixed),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.Person,
+                                            contentDescription = null,
+                                            tint = if (isSelected) Primary else Primary
+                                        )
                                     }
-                                    IconButton(onClick = { pararDeAcompanhar(paciente.idVinculo) }) {
-                                        Icon(Icons.Default.Delete, contentDescription = "Remover", tint = Color.Red)
+
+                                    Spacer(modifier = Modifier.width(16.dp))
+
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(paciente.nomePaciente, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = OnSurface)
+                                        Text(paciente.emailPaciente, fontSize = 12.sp, color = OnSurfaceVariant)
+                                    }
+                                    IconButton(
+                                        onClick = { pararDeAcompanhar(paciente.idVinculo) },
+                                        modifier = Modifier.background(ErrorContainer, RoundedCornerShape(8.dp))
+                                    ) {
+                                        Icon(Icons.Default.Delete, contentDescription = "Remover", tint = ErrorColor)
                                     }
                                 }
                             }
@@ -236,51 +264,66 @@ fun TelaAcompanhantes(navController: NavController, emailUsuario: String) {
                 }
 
             } else {
-                // VISÃO DO PACIENTE
+                // VISÃO DO PACIENTE (Código e Acompanhantes)
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD)),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    border = BorderStroke(1.dp, Primary),
+                    shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier.padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("Seu Código de Convite", fontSize = 16.sp, color = Color.Gray)
+                        Text("Seu Código de Convite", fontSize = 14.sp, color = OnSurfaceVariant)
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(codigoAtual, fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0D47A1), letterSpacing = 2.sp)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("Compartilhe este código para que alguém acompanhe sua rotina.", fontSize = 12.sp, color = Color.DarkGray, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                        Text(codigoAtual, fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Primary, letterSpacing = 2.sp)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text("Compartilhe este código para que alguém acompanhe sua rotina.", fontSize = 12.sp, color = OnSurfaceVariant, textAlign = TextAlign.Center)
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
-                Divider()
+                Spacer(modifier = Modifier.height(32.dp))
+                HorizontalDivider(color = OutlineVariant)
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text("Acompanhantes Ativos", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0D47A1))
-                Spacer(modifier = Modifier.height(8.dp))
+                Text("Acompanhantes Ativos", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Primary)
+                Spacer(modifier = Modifier.height(16.dp))
 
                 if (listaAcompanhantes.isEmpty()) {
-                    Text("Nenhum acompanhante vinculado no momento.", color = Color.Gray)
+                    Box(modifier = Modifier.fillMaxWidth().padding(top = 24.dp), contentAlignment = Alignment.Center) {
+                        Text("Nenhum acompanhante vinculado no momento.", color = OnSurfaceVariant)
+                    }
                 } else {
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxSize()) {
                         items(listaAcompanhantes) { acompanhante ->
                             Card(
                                 colors = CardDefaults.cardColors(containerColor = Color.White),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                                border = BorderStroke(1.dp, OutlineVariant),
+                                shape = RoundedCornerShape(12.dp),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Row(
                                     modifier = Modifier.padding(16.dp).fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(acompanhante.nomeAcompanhante, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                        Text(acompanhante.emailAcompanhante, fontSize = 14.sp, color = Color.Gray)
+                                    // Quadradinho do Ícone
+                                    Box(
+                                        modifier = Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)).background(PrimaryFixed),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(Icons.Outlined.Group, contentDescription = null, tint = Primary)
                                     }
-                                    IconButton(onClick = { revogarAcessoAcompanhante(acompanhante.idVinculo) }) {
-                                        Icon(Icons.Default.Delete, contentDescription = "Revogar Acesso", tint = Color.Red)
+                                    Spacer(modifier = Modifier.width(16.dp))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(acompanhante.nomeAcompanhante, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = OnSurface)
+                                        Text(acompanhante.emailAcompanhante, fontSize = 12.sp, color = OnSurfaceVariant)
+                                    }
+                                    IconButton(
+                                        onClick = { revogarAcessoAcompanhante(acompanhante.idVinculo) },
+                                        modifier = Modifier.background(ErrorContainer, RoundedCornerShape(8.dp))
+                                    ) {
+                                        Icon(Icons.Default.Delete, contentDescription = "Revogar Acesso", tint = ErrorColor)
                                     }
                                 }
                             }

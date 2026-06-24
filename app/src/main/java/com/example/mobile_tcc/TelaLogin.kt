@@ -1,18 +1,22 @@
 package com.example.mobile_tcc
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.mobile_tcc.ui.theme.* // Importando as cores do seu tema
 import kotlinx.coroutines.launch
 
 @Composable
@@ -69,57 +73,107 @@ fun TelaLogin(navController: NavController) {
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Bem-vindo ao MedCare!", fontSize = 24.sp, color = Color(0xFF0D47A1))
+    // Estilo padronizado para os campos de texto
+    val textFieldColors = OutlinedTextFieldDefaults.colors(
+        focusedBorderColor = Primary,
+        unfocusedBorderColor = OutlineVariant,
+        focusedLabelColor = Primary,
+        unfocusedLabelColor = OnSurfaceVariant,
+        cursorColor = Primary
+    )
+    val textFieldShape = RoundedCornerShape(12.dp)
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("E-mail") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = senha,
-            onValueChange = { senha = it },
-            label = { Text("Senha") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = { realizarLogin() },
-            modifier = Modifier.fillMaxWidth().height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D47A1)),
-            enabled = !carregando
+    Scaffold(
+        containerColor = Background // Fundo claro padrão do app
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (carregando) {
-                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-            } else {
-                Text("ENTRAR", fontSize = 18.sp)
+            Text(
+                text = "Bem-vindo ao Medicare!",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = Primary
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("E-mail") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                shape = textFieldShape,
+                colors = textFieldColors
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = senha,
+                onValueChange = { senha = it },
+                label = { Text("Senha") },
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                shape = textFieldShape,
+                colors = textFieldColors
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(
+                onClick = { realizarLogin() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp), // Altura aprimorada
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Primary,
+                    disabledContainerColor = Primary.copy(alpha = 0.5f)
+                ),
+                shape = RoundedCornerShape(12.dp),
+                enabled = !carregando
+            ) {
+                if (carregando) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                } else {
+                    Text("ENTRAR", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "Não tem conta? Cadastre-se",
+                color = Primary,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.clickable {
+                    navController.navigate("cadastro")
+                }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Esqueci minha senha",
+                color = Primary,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.clickable {
+                    if (email.isNotBlank()) {
+                        navController.navigate("trocar_senha/$email")
+                    } else {
+                        Toast.makeText(context, "Digite seu e-mail acima para trocar a senha", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            )
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "Não tem conta? Cadastre-se",
-            color = Color(0xFF0D47A1),
-            modifier = Modifier.clickable {
-                navController.navigate("cadastro")
-            }
-        )
     }
 }

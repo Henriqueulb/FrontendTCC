@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; color: #333; line-height: 1.6; }
+        .header { text-align: center; border-bottom: 2px solid #0056b3; margin-bottom: 20px; padding-bottom: 10px; }
+        h1 { color: #0056b3; margin: 0; font-size: 24px; }
+        .paciente-info { background: #eef4ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #0056b3; }
+        .section { margin-bottom: 25px; }
+        h2 { color: #0056b3; font-size: 18px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        .card-container { display: flex; gap: 20px; margin-bottom: 20px; }
+        .card { flex: 1; border: 1px solid #e0e0e0; padding: 15px; border-radius: 12px; background: #f8f9fa; }
+        .card h3 { margin-top: 0; font-size: 12px; color: #666; text-transform: uppercase; }
+        .card .value { font-size: 24px; font-weight: bold; color: #0056b3; }
+        .chart-container { height: 250px; width: 100%; margin-top: 10px; padding: 10px; border: 1px solid #eee; border-radius: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th, td { text-align: left; padding: 10px; border-bottom: 1px solid #eee; }
+        th { background-color: #f2f2f2; color: #555; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1f; gap: 10px; }
+        .info-item { margin-bottom: 10px; }
+        .label { font-weight: bold; color: #555; display: block; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Relatório Clínico de Acompanhamento</h1>
+        <p id="data-geracao" style="font-size: 12px; color: #666;"></p>
+    </div>
+
+    <div class="paciente-info">
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="label">PACIENTE</span>
+                <span id="nome-paciente">--</span>
+            </div>
+            <div class="info-item">
+                <span class="label">ACOMPANHANTE(S)</span>
+                <span id="lista-acompanhantes">Nenhum vinculado</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Informações Médicas</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="label">ALERGIAS</span>
+                <span id="alergias">Nenhuma informada</span>
+            </div>
+            <div class="info-item">
+                <span class="label">COMORBIDADES</span>
+                <span id="comorbidades">Nenhuma informada</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="card-container">
+            <div class="card">
+                <h3>Adesão no Período</h3>
+                <div class="value" id="adesao">--</div>
+            </div>
+            <div class="card">
+                <h3>Média Bem-Estar</h3>
+                <div class="value" id="bem-estar">--</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Rotinas e Medicamentos Documentados</h2>
+        <table id="tabela-rotinas">
+            <thead>
+                <tr>
+                    <th>Item/Medicamento</th>
+                    <th>Horário</th>
+                    <th>Dose</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Evolução do Tratamento</h2>
+        <div class="chart-container">
+            <canvas id="evolucaoChart"></canvas>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Sintomas Reportados</h2>
+        <table id="tabela-sintomas">
+            <thead>
+                <tr>
+                    <th>Sintoma</th>
+                    <th>Ocorrências</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        function carregarDados(jsonString) {
+            const data = JSON.parse(jsonString);
+
+            // 1. Cabeçalho e Identificação
+            document.getElementById('data-geracao').innerText = 'Gerado em: ' + new Date().toLocaleDateString('pt-BR');
+            document.getElementById('nome-paciente').innerText = data.nomePaciente || 'Não informado';
+
+            if (data.acompanhantes && data.acompanhantes.length > 0) {
+                document.getElementById('lista-acompanhantes').innerText = data.acompanhantes.map(a => a.nomeAcompanhante).join(', ');
+            }
+
+            // 2. Ficha Médica
+            if (data.fichaMedica) {
+                document.getElementById('alergias').innerText = data.fichaMedica.alergias || 'Nenhuma';
+                document.getElementById('comorbidades').innerText = data.fichaMedica.comorbidades || 'Nenhuma';
+            }
+
+            // 3. Métricas
+            document.getElementById('adesao').innerText = data.taxaAdesaoGlobal.toFixed(0) + '%';
+            document.getElementById('bem-estar').innerText = data.mediaBemEstar.toFixed(1) + '/10';
+
+            // 4. Tabela de Rotinas
+            const tbodyRotina = document.querySelector('#tabela-rotinas tbody');
+            if (data.itensRotina && data.itensRotina.length > 0) {
+                data.itensRotina.forEach(item => {
+                    tbodyRotina.innerHTML += `<tr><td>${item.titulo}</td><td>${item.horario}</td><td>${item.dose || '-'}</td></tr>`;
+                });
+            } else {
+                tbodyRotina.innerHTML = '<tr><td colspan="3">Nenhuma rotina ativa documentada.</td></tr>';
+            }
+
+            // 5. Tabela de Sintomas
+            const tbodySintomas = document.querySelector('#tabela-sintomas tbody');
+            if (data.sintomasFrequentes && data.sintomasFrequentes.length > 0) {
+                data.sintomasFrequentes.forEach(s => {
+                    tbodySintomas.innerHTML += `<tr><td>${s.nome}</td><td>${s.contagem}</td></tr>`;
+                });
+            } else {
+                tbodySintomas.innerHTML = '<tr><td colspan="2">Nenhum sintoma registrado.</td></tr>';
+            }
+
+            // 6. Gráfico
+            const ctx = document.getElementById('evolucaoChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.evolucaoTemporal.map(p => {
+                        const partes = p.data.includes('-') ? p.data.split('-') : p.data.split('/');
+                        return p.data.includes('-') ? `${partes[2]}/${partes[1]}` : `${partes[0]}/${partes[1]}`;
+                    }),
+                    datasets: [{
+                        label: 'Doses Tomadas',
+                        data: data.evolucaoTemporal.map(p => p.dosesTomadas),
+                        borderColor: '#0056b3',
+                        backgroundColor: 'rgba(0, 86, 179, 0.1)',
+                        fill: true, tension: 0.3, animation: false
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, animation: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+            });
+        }
+    </script>
+</body>
+</html>

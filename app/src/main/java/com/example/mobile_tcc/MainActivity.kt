@@ -45,6 +45,12 @@ fun AppNavigation() {
             val email = backStackEntry.arguments?.getString("email") ?: ""
             TelaHome(navController, email)
         }
+        //TELA RELAToRIO
+        composable("relatorio/{email}") { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email") ?: ""
+            TelaRelatorio(navController, email) // Passe o e-mail!
+        }
+
 
         // 1. Lista de Pastas de Rotinas (Aba de Rotinas Principal)
         composable(

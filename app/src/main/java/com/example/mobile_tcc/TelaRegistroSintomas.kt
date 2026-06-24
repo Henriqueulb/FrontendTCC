@@ -1,11 +1,13 @@
 package com.example.mobile_tcc
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Face
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,7 +18,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.mobile_tcc.ui.theme.*
 import kotlinx.coroutines.launch
+import com.example.mobile_tcc.NovoSintomaDTO
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,134 +28,203 @@ fun TelaRegistroSintomas(navController: NavController, emailUsuario: String) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    // Estados dos Sliders
     var bemEstar by remember { mutableStateOf(5f) }
-    var sintomas by remember { mutableStateOf(5f) }
-    var carregando by remember { mutableStateOf(false) }
+    var nivelSintomas by remember { mutableStateOf(5f) }
+    var listaSintomas by remember { mutableStateOf(listOf<DetalheSintomaDTO>()) }
+    var nomeNovoSintoma by remember { mutableStateOf("") }
+    var intensidadeNova by remember { mutableStateOf(5f) }
+    var enviando by remember { mutableStateOf(false) }
 
     fun salvarSintomas() {
         scope.launch {
-            carregando = true
+            enviando = true
             try {
-                val dto = NovoSintomaDTO(
+                val request = NovoSintomaDTO(
                     emailUsuario = emailUsuario,
                     bemEstar = bemEstar.toInt(),
-                    sintomas = sintomas.toInt()
+                    sintomas = listaSintomas
                 )
 
-                val response = RetrofitClient.api.registrarSintoma(dto)
+                val response = RetrofitClient.api.registrarSintoma(request)
                 if (response.isSuccessful) {
-                    Toast.makeText(context, "Registrado com sucesso!", Toast.LENGTH_SHORT).show()
-                    navController.popBackStack() // Volta para a Home
+                    Toast.makeText(context, "Registro salvo com sucesso!", Toast.LENGTH_SHORT).show()
+                    navController.popBackStack()
                 } else {
-                    Toast.makeText(context, "Erro ao registrar.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Erro ao salvar registro", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(context, "Erro de conexão.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Erro de conexão", Toast.LENGTH_SHORT).show()
             } finally {
-                carregando = false
+                enviando = false
             }
         }
     }
 
     Scaffold(
+        containerColor = Background,
         topBar = {
             TopAppBar(
-                title = { Text("Diário de Bem-Estar", color = Color.White) },
+                title = { Text("Registrar Sintomas", color = Primary, fontWeight = FontWeight.Bold, fontSize = 20.sp) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = Color.White)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = OnSurfaceVariant)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF0D47A1))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
             )
         }
-    ) { paddingValues ->
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(24.dp),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(padding)
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState())
         ) {
             Text(
-                text = "Como você está hoje?",
+                "Como você está se sentindo hoje?",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF0D47A1),
-                modifier = Modifier.padding(bottom = 32.dp)
+                color = OnSurface,
+                lineHeight = 28.sp
+            )
+            Text(
+                "Registre seu bem-estar e intensidade de sintomas para acompanhamento médico.",
+                color = OnSurfaceVariant,
+                fontSize = 14.sp
             )
 
-            // ESCALA BEM-ESTAR
-            Text("Nível de Bem-Estar Geral", fontWeight = FontWeight.SemiBold)
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Face, "Rosto", tint = Color.Gray)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "${bemEstar.toInt()}",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if(bemEstar < 4) Color.Red else Color(0xFF2E7D32)
-                )
-                Text("/10", fontSize = 16.sp, color = Color.Gray)
-            }
-            Slider(
-                value = bemEstar,
-                onValueChange = { bemEstar = it },
-                valueRange = 0f..10f,
-                steps = 9,
-                colors = SliderDefaults.colors(
-                    thumbColor = Color(0xFF0D47A1),
-                    activeTrackColor = Color(0xFF0D47A1)
-                )
-            )
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Péssimo", fontSize = 12.sp, color = Color.Gray)
-                Text("Ótimo", fontSize = 12.sp, color = Color.Gray)
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Card Bem-Estar
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                border = BorderStroke(1.dp, OutlineVariant),
+                shape = RoundedCornerShape(12.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Nível de Bem-Estar", fontWeight = FontWeight.Bold, color = Primary)
+                        Text("${bemEstar.toInt()}/10", fontWeight = FontWeight.Bold, color = Primary)
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Slider(
+                        value = bemEstar,
+                        onValueChange = { bemEstar = it },
+                        valueRange = 0f..10f,
+                        steps = 9,
+                        colors = SliderDefaults.colors(
+                            thumbColor = Primary,
+                            activeTrackColor = Primary,
+                            inactiveTrackColor = OutlineVariant.copy(alpha = 0.3f)
+                        )
+                    )
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Péssimo", fontSize = 12.sp, color = OnSurfaceVariant)
+                        Text("Excelente", fontSize = 12.sp, color = OnSurfaceVariant)
+                    }
+                }
             }
 
-            Divider(modifier = Modifier.padding(vertical = 24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // ESCALA SINTOMAS
-            Text("Intensidade dos Sintomas", fontWeight = FontWeight.SemiBold)
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Warning, "Alerta", tint = Color.Gray)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "${sintomas.toInt()}",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if(sintomas > 6) Color.Red else Color(0xFF2E7D32)
-                )
-                Text("/10", fontSize = 16.sp, color = Color.Gray)
-            }
-            Slider(
-                value = sintomas,
-                onValueChange = { sintomas = it },
-                valueRange = 0f..10f,
-                steps = 9,
-                colors = SliderDefaults.colors(
-                    thumbColor = if(sintomas > 6) Color.Red else Color(0xFFFFA000),
-                    activeTrackColor = if(sintomas > 6) Color.Red else Color(0xFFFFA000)
-                )
-            )
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Nenhum", fontSize = 12.sp, color = Color.Gray)
-                Text("Insuportável", fontSize = 12.sp, color = Color.Gray)
+            // Adicionar Sintomas
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                border = BorderStroke(1.dp, OutlineVariant),
+                shape = RoundedCornerShape(12.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Text("Adicionar Sintoma", fontWeight = FontWeight.Bold, color = Primary)
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = nomeNovoSintoma,
+                        onValueChange = { nomeNovoSintoma = it },
+                        label = { Text("Nome do sintoma") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp), // Arredonda os cantos igual aos seus Cards
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Primary,
+                            unfocusedBorderColor = OutlineVariant,
+                            focusedLabelColor = Primary
+                        ),
+                        singleLine = true
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Intensidade: ${intensidadeNova.toInt()}/10", fontSize = 14.sp, color = OnSurfaceVariant)
+                    Slider(
+                        value = intensidadeNova,
+                        onValueChange = { intensidadeNova = it },
+                        valueRange = 1f..10f,
+                        steps = 9
+                    )
+
+                    Button(
+                        onClick = {
+                            if (nomeNovoSintoma.isNotEmpty()) {
+                                listaSintomas = listaSintomas + DetalheSintomaDTO(nomeNovoSintoma, intensidadeNova.toInt())
+                                nomeNovoSintoma = ""
+                                intensidadeNova = 5f
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Adicionar à Lista")
+                    }
+
+                    if (listaSintomas.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        HorizontalDivider(color = OutlineVariant.copy(alpha = 0.3f))
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Substitua o seu bloco listaSintomas.forEach por este:
+                        listaSintomas.forEach { sintoma ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column {
+                                        Text(sintoma.nome, fontWeight = FontWeight.Bold)
+                                        Text("Intensidade: ${sintoma.intensidade}/10", fontSize = 12.sp)
+                                    }
+                                    IconButton(onClick = { listaSintomas = listaSintomas - sintoma }) {
+                                        Text("X", color = Color.Red, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Spacer(modifier = Modifier.height(40.dp))
 
             Button(
                 onClick = { salvarSintomas() },
-                modifier = Modifier.fillMaxWidth().height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D47A1)),
-                enabled = !carregando
+                modifier = Modifier.fillMaxWidth().height(54.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                enabled = !enviando
             ) {
-                if (carregando) CircularProgressIndicator(color = Color.White) else Text("REGISTRAR DIÁRIO")
+                if (enviando) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 2.dp)
+                } else {
+                    Text("SALVAR REGISTRO", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                }
             }
         }
     }
