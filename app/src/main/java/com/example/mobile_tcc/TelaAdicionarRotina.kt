@@ -17,7 +17,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.mobile_tcc.ui.theme.* // Importando as cores do seu tema
+import com.example.mobile_tcc.ui.theme.*
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,16 +51,36 @@ fun TelaAdicionarRotina(navController: NavController, idRotina: Int) {
         scope.launch {
             carregando = true
             try {
+                val horarioFormatado = Mascaras.formatarHora(horario)
                 val dto = NovoItemRotinaDTO(
                     idRotina = idRotina,
                     titulo = nomeMedicamento,
-                    horario = Mascaras.formatarHora(horario),
+                    horario = horarioFormatado,
                     dose = dose,
                     descricao = descricao.takeIf { it.isNotBlank() }
                 )
 
                 val response = RetrofitClient.api.criarItemRotina(dto)
                 if (response.isSuccessful) {
+
+                    val idCriado = (nomeMedicamento + horarioFormatado).hashCode()
+
+                    // Agenda a notificacao no horario exato
+                    AgendadorNotificacoes.agendarAlarme(
+                        context = context,
+                        idItem = idCriado,
+                        horario = horarioFormatado,
+                        nomeRemedio = nomeMedicamento
+                    )
+
+                    // Agenda a notificacao de atraso (30 min depois)
+                    AgendadorNotificacoes.agendarReforco(
+                        context = context,
+                        idItem = idCriado,
+                        horario = horarioFormatado,
+                        nomeRemedio = nomeMedicamento
+                    )
+
                     Toast.makeText(context, "Cuidado adicionado com sucesso!", Toast.LENGTH_SHORT).show()
                     navController.previousBackStackEntry?.savedStateHandle?.set("refresh", true)
                     navController.popBackStack()

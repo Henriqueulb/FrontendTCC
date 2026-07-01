@@ -27,6 +27,8 @@ import com.example.mobile_tcc.NovoSintomaDTO
 fun TelaRegistroSintomas(navController: NavController, emailUsuario: String) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val sharedPrefs = remember { context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE) }
+    val emailLogado = remember { sharedPrefs.getString("emailLogado", "") ?: "" }
 
     var bemEstar by remember { mutableStateOf(5f) }
     var nivelSintomas by remember { mutableStateOf(5f) }
@@ -44,8 +46,8 @@ fun TelaRegistroSintomas(navController: NavController, emailUsuario: String) {
                     bemEstar = bemEstar.toInt(),
                     sintomas = listaSintomas
                 )
-
-                val response = RetrofitClient.api.registrarSintoma(request)
+                val emailRegistro = emailLogado.ifEmpty { emailUsuario }
+                val response = RetrofitClient.api.registrarSintoma(emailRegistro, request)
                 if (response.isSuccessful) {
                     Toast.makeText(context, "Registro salvo com sucesso!", Toast.LENGTH_SHORT).show()
                     navController.popBackStack()

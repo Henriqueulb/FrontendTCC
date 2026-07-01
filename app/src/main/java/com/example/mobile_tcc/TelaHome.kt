@@ -85,19 +85,26 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
         }
     }
 
-    fun atualizarStatusTarefa(idItem: Int, foiFeito: Boolean) {
+    fun atualizarStatusTarefa(tarefa: ItemRotinaDTO, foiFeito: Boolean) {
         val dataHoje = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
         scope.launch {
             try {
                 val statusDto = StatusRotinaDTO(
-                    idItem = idItem,
+                    idItem = tarefa.id,
                     feito = foiFeito,
                     data = dataHoje
                 )
-                val response = RetrofitClient.api.atualizarStatus(statusDto)
+                val emailExecutor = emailLogado.ifEmpty { emailUsuario }
+                val response = RetrofitClient.api.atualizarStatus(emailExecutor, statusDto)
 
                 if (response.isSuccessful) {
+
+                    if (foiFeito) {
+                        val idParaCancelar = (tarefa.titulo + tarefa.horario).hashCode()
+                        AgendadorNotificacoes.cancelarReforco(context, idParaCancelar)
+                    }
+
                     carregarHome()
                 } else {
                     Toast.makeText(context, "Erro ao atualizar status", Toast.LENGTH_SHORT).show()
@@ -115,7 +122,7 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
     Scaffold(
         containerColor = ColorBackground, // Fundo claro geral do HTML
         bottomBar = {
-            // Barra de navegação com as cores do novo design
+            // Barra de navegacao
             NavigationBar(
                 containerColor = ColorSurfaceLowest,
                 tonalElevation = 8.dp,
@@ -163,10 +170,10 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(paddingValues),
-            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 24.dp), // Ajustado para o padding do HTML
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 24.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // Banner Acompanhante adaptado ao design
+            // Banner Acompanhante
             if (isAcompanhante) {
                 item {
                     Card(
@@ -209,7 +216,7 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                 }
             }
 
-            // Cabeçalho (Olá, Nome) adaptado ao design do novo HTML
+            // Cabeçalho
             item {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -237,7 +244,7 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                 }
             }
 
-            // Seu Progresso Hoje (Círculo de Progresso do novo HTML)
+            // Seu Progresso Hoje
             item {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = ColorSurfaceLowest),
@@ -259,7 +266,7 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                         )
                         Spacer(modifier = Modifier.height(24.dp))
 
-                        // Círculo de Progresso igual ao HTML
+                        // Circulo de Progresso
                         Box(contentAlignment = Alignment.Center, modifier = Modifier.size(150.dp)) {
                             CircularProgressIndicator(
                                 progress = { 1f },
@@ -293,8 +300,8 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                 }
             }
 
-            // Próximos Cuidados
-            // CABEÇALHO DA LISTA DE TAREFAS ("Próximos Cuidados" e "Ver tudo")
+            // Proximos Cuidados
+            // CABEÇALHO DA LISTA DE TAREFAS ("Proximos Cuidados" e "Ver tudo")
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
@@ -317,7 +324,7 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                 }
             }
 
-            // LÓGICA E DESIGN DOS CARDS DE MEDICAÇÃO
+            // CARDS DE MEDICACAO
             if (carregando) {
                 item {
                     Box(modifier = Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
@@ -352,12 +359,12 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // LADO ESQUERDO: Ícone e Nomes
+                            // LADO ESQUERDO: Icone e Nomes
                             Row(
                                 modifier = Modifier.weight(1f),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                // Quadradinho do Ícone Médico
+                                // Icone Médico
                                 Box(
                                     modifier = Modifier
                                         .size(48.dp)
@@ -366,7 +373,7 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.MedicalServices, // Ícone de Saúde/Medicamento
+                                        imageVector = Icons.Default.MedicalServices, // Icone de Medicamento
                                         contentDescription = "Medicamento",
                                         tint = ColorPrimary
                                     )
@@ -374,7 +381,7 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
 
                                 Spacer(modifier = Modifier.width(16.dp))
 
-                                // Título e Dose
+                                // Titulo e Dose
                                 Column {
                                     Text(
                                         text = item.titulo,
@@ -385,7 +392,7 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                                     if (!item.dose.isNullOrBlank()) {
                                         Spacer(modifier = Modifier.height(2.dp))
                                         Text(
-                                            text = "Dose: ${item.dose}", // Adicionado o prefixo "Dose:" para ficar igual ao seu print antigo
+                                            text = "Dose: ${item.dose}",
                                             fontSize = 12.sp,
                                             color = ColorOnSurfaceVariant
                                         )
@@ -393,7 +400,7 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                                 }
                             }
 
-                            // LADO DIREITO: Apenas o Horário e o Checkbox
+                            // LADO DIREITO: Horário e Checkbox
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = item.horario,
@@ -405,7 +412,7 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                                 Checkbox(
                                     checked = item.feita,
                                     onCheckedChange = { isChecked ->
-                                        atualizarStatusTarefa(item.id, isChecked)
+                                        atualizarStatusTarefa(item, isChecked)
                                     },
                                     colors = CheckboxDefaults.colors(
                                         checkedColor = ColorPrimary,

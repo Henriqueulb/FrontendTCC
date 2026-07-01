@@ -169,13 +169,13 @@ interface ApiService {
     suspend fun getHome(@Query("email") email: String): Response<HomeResumoDTO>
 
     @POST("rotina/status")
-    suspend fun atualizarStatus(@Body status: StatusRotinaDTO): Response<RespostaApi>
+    suspend fun atualizarStatus(@Header("X-User-Email") emailLogado: String, @Body status: StatusRotinaDTO): Response<RespostaApi>
 
     @DELETE("rotina/{id}")
     suspend fun deletarRotina(@Path("id") id: Int): Response<RespostaApi>
 
     @POST("sintomas")
-    suspend fun registrarSintoma(@Body request: NovoSintomaDTO): Response<RespostaApi>
+    suspend fun registrarSintoma(@Header("X-User-Email") emailLogado: String, @Body request: NovoSintomaDTO): Response<RespostaApi>
 
     @GET("perfil")
     suspend fun getPerfil(@Query("email") email: String): Response<PerfilUsuarioDTO>
@@ -230,7 +230,7 @@ interface ApiService {
 }
 
 object RetrofitClient {
-    private const val BASE_URL = "http://10.0.2.2:8080/"
+    private const val BASE_URL = "http://192.168.1.106:8080/"
     val api: ApiService by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
