@@ -93,6 +93,11 @@ data class TrocarSenhaDTO(
     @SerializedName("novaSenha") val novaSenha: String
 )
 
+data class DesativarContaDTO(
+    @SerializedName("email") val email: String,
+    @SerializedName("senha") val senha: String
+)
+
 @Serializable
 data class FichaMedicaDTO(
     @SerializedName("emailUsuario") val emailUsuario: String,
@@ -185,6 +190,9 @@ interface ApiService {
 
     @PUT("usuario/senha")
     suspend fun trocarSenha(@Body dados: TrocarSenhaDTO): Response<RespostaApi>
+
+    @POST("usuario/desativar")
+    suspend fun desativarConta(@Body dados: DesativarContaDTO): Response<RespostaApi>
 
     @DELETE("usuario")
     suspend fun deletarConta(@Query("email") email: String): Response<RespostaApi>

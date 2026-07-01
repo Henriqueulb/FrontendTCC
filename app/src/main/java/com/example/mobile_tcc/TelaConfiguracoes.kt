@@ -20,11 +20,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.mobile_tcc.ui.theme.* // Importando as cores do seu tema
-import kotlinx.coroutines.launch
+import com.example.mobile_tcc.ui.theme.* import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,26 +34,36 @@ fun TelaConfiguracoes(navController: NavController, emailUsuario: String) {
 
     var mostrarDialogExclusao by remember { mutableStateOf(false) }
     var carregando by remember { mutableStateOf(false) }
+    var senhaConfirmacao by remember { mutableStateOf("") } // Novo estado para a senha
 
-    fun deletarConta() {
+    fun desativarConta() {
+        if (senhaConfirmacao.isBlank()) {
+            Toast.makeText(context, "Digite sua senha para continuar.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         scope.launch {
             carregando = true
             try {
-                val response = RetrofitClient.api.deletarConta(emailUsuario)
-                if (response.isSuccessful) {
-                    Toast.makeText(context, "Conta excluída.", Toast.LENGTH_LONG).show()
+                // Passa o DTO com email e senha para a nova rota POST
+                val dto = DesativarContaDTO(emailUsuario, senhaConfirmacao)
+                val response = RetrofitClient.api.desativarConta(dto)
+
+                if (response.isSuccessful && response.body()?.sucesso == true) {
+                    Toast.makeText(context, "Conta desativada.", Toast.LENGTH_LONG).show()
                     // Volta para o login e limpa tudo
                     navController.navigate("login") {
                         popUpTo(0) { inclusive = true }
                     }
                 } else {
-                    Toast.makeText(context, "Erro ao excluir conta.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, response.body()?.mensagem ?: "Erro ao desativar conta. Verifique sua senha.", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 Toast.makeText(context, "Erro de conexão.", Toast.LENGTH_SHORT).show()
             } finally {
                 carregando = false
                 mostrarDialogExclusao = false
+                senhaConfirmacao = "" // Limpa a senha por segurança
             }
         }
     }
@@ -108,7 +118,7 @@ fun TelaConfiguracoes(navController: NavController, emailUsuario: String) {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Deletar Conta
+            // Desativar Conta
             Button(
                 onClick = { mostrarDialogExclusao = true },
                 colors = ButtonDefaults.buttonColors(containerColor = ErrorContainer),
@@ -123,37 +133,54 @@ fun TelaConfiguracoes(navController: NavController, emailUsuario: String) {
                 } else {
                     Icon(Icons.Default.DeleteForever, null, tint = ErrorColor)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Deletar Minha Conta", color = ErrorColor, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("Desativar Minha Conta", color = ErrorColor, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
             }
         }
     }
 
-    // DIALOG DE CONFIRMAÇÃO
+    // DIALOG DE CONFIRMAÇÃO COM SENHA
     if (mostrarDialogExclusao) {
         AlertDialog(
-            onDismissRequest = { mostrarDialogExclusao = false },
+            onDismissRequest = {
+                mostrarDialogExclusao = false
+                senhaConfirmacao = "" // Limpa o campo se fechar o dialog
+            },
             containerColor = Color.White,
             title = {
-                Text("Tem certeza?", fontWeight = FontWeight.Bold, color = OnSurface)
+                Text("Desativar Conta?", fontWeight = FontWeight.Bold, color = OnSurface)
             },
             text = {
-                Text(
-                    text = "Essa ação apagará todos os seus dados, histórico e rotinas permanentemente. Não é possível desfazer.",
-                    color = OnSurfaceVariant
-                )
+                Column {
+                    Text(
+                        text = "Essa ação irá desativar sua conta para sempre. Para confirmar, digite sua senha abaixo:",
+                        color = OnSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    OutlinedTextField(
+                        value = senhaConfirmacao,
+                        onValueChange = { senhaConfirmacao = it },
+                        label = { Text("Sua Senha") },
+                        visualTransformation = PasswordVisualTransformation(),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             },
             confirmButton = {
                 TextButton(
-                    onClick = { deletarConta() },
+                    onClick = { desativarConta() },
                     colors = ButtonDefaults.textButtonColors(contentColor = ErrorColor)
                 ) {
-                    Text("SIM, DELETAR", fontWeight = FontWeight.Bold)
+                    Text("CONFIRMAR", fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(
-                    onClick = { mostrarDialogExclusao = false },
+                    onClick = {
+                        mostrarDialogExclusao = false
+                        senhaConfirmacao = ""
+                    },
                     colors = ButtonDefaults.textButtonColors(contentColor = OnSurfaceVariant)
                 ) {
                     Text("Cancelar", fontWeight = FontWeight.SemiBold)

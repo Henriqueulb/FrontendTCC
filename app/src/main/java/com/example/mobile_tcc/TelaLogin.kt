@@ -16,8 +16,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.mobile_tcc.ui.theme.* // Importando as cores do seu tema
+import com.example.mobile_tcc.ui.theme.*
 import kotlinx.coroutines.launch
+import com.google.gson.Gson
 
 @Composable
 fun TelaLogin(navController: NavController) {
@@ -37,36 +38,39 @@ fun TelaLogin(navController: NavController) {
         scope.launch {
             carregando = true
             try {
-                val request = LoginRequest(email, senha)
-                val response = RetrofitClient.api.login(request)
+                val response = RetrofitClient.api.login(LoginRequest(email, senha))
 
                 if (response.isSuccessful) {
-                    val dados = response.body()
-                    val emailLimpo = email.trim().lowercase()
-
-                    val sharedPrefs = context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
-                    val editor = sharedPrefs.edit()
-                        .putBoolean("isAcompanhante", dados?.isAcompanhante ?: false)
-                        .putString("emailLogado", emailLimpo)
-
-                    if (dados?.isAcompanhante == true) {
-                        editor.remove("emailPaciente")
-                        editor.apply()
-                        navController.navigate("selecionar_paciente/$emailLimpo") {
+                    val resposta = response.body()
+                    if (resposta?.sucesso == true) {
+                        // Sucesso! Navega para a Home
+                        navController.navigate("home/${email}") {
                             popUpTo("login") { inclusive = true }
                         }
                     } else {
-                        editor.putString("emailPaciente", emailLimpo)
-                        editor.apply()
-                        navController.navigate("home/$emailLimpo") {
-                            popUpTo("login") { inclusive = true }
-                        }
+                        Toast.makeText(context, resposta?.mensagem ?: "Erro desconhecido", Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    Toast.makeText(context, "Login falhou. Verifique seus dados.", Toast.LENGTH_SHORT).show()
+                    // Quando o backend retorna 401 ou 403 (Erro de Autenticação/Permissão)
+                    val errorBody = response.errorBody()?.string()
+                    var mensagemErro = "Login falhou. Verifique seus dados."
+
+                    if (!errorBody.isNullOrBlank()) {
+                        try {
+                            // Tenta extrair a mensagem customizada ("Sua conta foi desativada.")
+                            val erro = Gson().fromJson(errorBody, RespostaApi::class.java)
+                            if (erro?.mensagem != null) {
+                                mensagemErro = erro.mensagem
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+
+                    Toast.makeText(context, mensagemErro, Toast.LENGTH_LONG).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(context, "Erro de conexão: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Erro de conexão com o servidor.", Toast.LENGTH_SHORT).show()
             } finally {
                 carregando = false
             }
