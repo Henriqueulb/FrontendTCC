@@ -51,6 +51,9 @@ fun TelaConfiguracoes(navController: NavController, emailUsuario: String) {
 
                 if (response.isSuccessful && response.body()?.sucesso == true) {
                     Toast.makeText(context, "Conta desativada.", Toast.LENGTH_LONG).show()
+
+                    val sharedPrefs = context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
+                    sharedPrefs.edit().clear().apply()
                     // Volta para o login e limpa tudo
                     navController.navigate("login") {
                         popUpTo(0) { inclusive = true }

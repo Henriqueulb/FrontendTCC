@@ -43,10 +43,19 @@ fun TelaLogin(navController: NavController) {
                 if (response.isSuccessful) {
                     val resposta = response.body()
                     if (resposta?.sucesso == true) {
-                        // Sucesso! Navega para a Home
-                        navController.navigate("home/${email}") {
-                            popUpTo("login") { inclusive = true }
+
+                        // Verifica se o usuário logado é um acompanhante
+                        if (resposta.isAcompanhante) {
+                            navController.navigate("selecionar_paciente/${email}") {
+                                popUpTo("login") { inclusive = true }
+                            }
+                        } else {
+                            // Se for um paciente comum, vai direto para a Home
+                            navController.navigate("home/${email}") {
+                                popUpTo("login") { inclusive = true }
+                            }
                         }
+
                     } else {
                         Toast.makeText(context, resposta?.mensagem ?: "Erro desconhecido", Toast.LENGTH_SHORT).show()
                     }
@@ -136,7 +145,7 @@ fun TelaLogin(navController: NavController) {
                 onClick = { realizarLogin() },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(54.dp), // Altura aprimorada
+                    .height(54.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Primary,
                     disabledContainerColor = Primary.copy(alpha = 0.5f)

@@ -38,6 +38,8 @@ fun TelaPerfil(navController: NavController, emailUsuario: String) {
     fun realizarLogout() {
         Toast.makeText(context, "Saindo...", Toast.LENGTH_SHORT).show()
 
+        sharedPrefs.edit().clear().apply()
+
         navController.navigate("login") {
             popUpTo(0) { inclusive = true }
         }
