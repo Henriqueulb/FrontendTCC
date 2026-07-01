@@ -163,7 +163,7 @@ fun TelaSelecionarPaciente(navController: NavController, emailAcompanhante: Stri
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp)) // Dá um respiro entre o conteúdo e o botão
+            Spacer(modifier = Modifier.height(24.dp))
 
             OutlinedButton(
                 onClick = { realizarLogout() },
@@ -173,7 +173,7 @@ fun TelaSelecionarPaciente(navController: NavController, emailAcompanhante: Stri
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red)
             ) {
                 Icon(
-                    imageVector = Icons.Default.ExitToApp, // Ícone padrão de "Sair" do Material Design
+                    imageVector = Icons.Default.ExitToApp, // Icone padrao de "Sair"
                     contentDescription = "Ícone de Sair"
                 )
                 Spacer(modifier = Modifier.width(8.dp))

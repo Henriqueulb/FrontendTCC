@@ -44,13 +44,20 @@ fun TelaLogin(navController: NavController) {
                     val resposta = response.body()
                     if (resposta?.sucesso == true) {
 
+                        val sharedPrefs = context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
+                        sharedPrefs.edit().apply {
+                            putString("emailLogado", email)
+                            putBoolean("isAcompanhante", resposta.isAcompanhante)
+                            apply()
+                        }
+
                         // Verifica se o usuário logado é um acompanhante
                         if (resposta.isAcompanhante) {
                             navController.navigate("selecionar_paciente/${email}") {
                                 popUpTo("login") { inclusive = true }
                             }
                         } else {
-                            // Se for um paciente comum, vai direto para a Home
+                            // Se for um paciente, vai direto para a Home
                             navController.navigate("home/${email}") {
                                 popUpTo("login") { inclusive = true }
                             }
@@ -60,13 +67,11 @@ fun TelaLogin(navController: NavController) {
                         Toast.makeText(context, resposta?.mensagem ?: "Erro desconhecido", Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    // Quando o backend retorna 401 ou 403 (Erro de Autenticação/Permissão)
                     val errorBody = response.errorBody()?.string()
                     var mensagemErro = "Login falhou. Verifique seus dados."
 
                     if (!errorBody.isNullOrBlank()) {
                         try {
-                            // Tenta extrair a mensagem customizada ("Sua conta foi desativada.")
                             val erro = Gson().fromJson(errorBody, RespostaApi::class.java)
                             if (erro?.mensagem != null) {
                                 mensagemErro = erro.mensagem

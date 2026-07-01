@@ -39,7 +39,7 @@ fun TelaCriarRotina(navController: NavController, emailUsuario: String) {
                 // Passando apenas email e nome
                 val request = CriarRotinaDTO(
                     emailUsuario = emailUsuario,
-                    nomeRotina = nome
+                    nomeRotina = nome,
                 )
                 val res = RetrofitClient.api.criarNovaRotina(request)
 
