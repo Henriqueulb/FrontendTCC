@@ -15,7 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.mobile_tcc.ui.theme.* // Importando as cores do seu tema
+import com.example.mobile_tcc.ui.theme.*
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,7 +39,7 @@ fun TelaCriarRotina(navController: NavController, emailUsuario: String) {
                 // Passando apenas email e nome
                 val request = CriarRotinaDTO(
                     emailUsuario = emailUsuario,
-                    nomeRotina = nome
+                    nomeRotina = nome,
                 )
                 val res = RetrofitClient.api.criarNovaRotina(request)
 
@@ -59,7 +59,7 @@ fun TelaCriarRotina(navController: NavController, emailUsuario: String) {
         }
     }
 
-    // Estilo padronizado para os campos de texto
+    // Estilo para os campos de texto
     val textFieldColors = OutlinedTextFieldDefaults.colors(
         focusedBorderColor = Primary,
         unfocusedBorderColor = OutlineVariant,
@@ -70,7 +70,7 @@ fun TelaCriarRotina(navController: NavController, emailUsuario: String) {
     val textFieldShape = RoundedCornerShape(12.dp)
 
     Scaffold(
-        containerColor = Background, // Fundo claro padrão do app
+        containerColor = Background,
         topBar = {
             TopAppBar(
                 title = { Text("Nova Rotina", color = Primary, fontWeight = FontWeight.Bold, fontSize = 20.sp) },
@@ -112,7 +112,7 @@ fun TelaCriarRotina(navController: NavController, emailUsuario: String) {
                 onClick = { salvar() },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(54.dp), // Altura aprimorada para o toque
+                    .height(54.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Primary,
                     disabledContainerColor = Primary.copy(alpha = 0.5f)
@@ -131,7 +131,6 @@ fun TelaCriarRotina(navController: NavController, emailUsuario: String) {
                 }
             }
 
-            // Pequeno respiro na parte inferior
             Spacer(modifier = Modifier.height(16.dp))
         }
     }

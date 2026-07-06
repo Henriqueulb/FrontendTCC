@@ -16,8 +16,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.mobile_tcc.ui.theme.* // Importando as cores do seu tema
+import com.example.mobile_tcc.ui.theme.*
 import kotlinx.coroutines.launch
+import com.google.gson.Gson
+import androidx.compose.ui.res.painterResource
 
 @Composable
 fun TelaLogin(navController: NavController) {
@@ -37,36 +39,53 @@ fun TelaLogin(navController: NavController) {
         scope.launch {
             carregando = true
             try {
-                val request = LoginRequest(email, senha)
-                val response = RetrofitClient.api.login(request)
+                val response = RetrofitClient.api.login(LoginRequest(email, senha))
 
                 if (response.isSuccessful) {
-                    val dados = response.body()
-                    val emailLimpo = email.trim().lowercase()
+                    val resposta = response.body()
+                    if (resposta?.sucesso == true) {
 
-                    val sharedPrefs = context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
-                    val editor = sharedPrefs.edit()
-                        .putBoolean("isAcompanhante", dados?.isAcompanhante ?: false)
-                        .putString("emailLogado", emailLimpo)
-
-                    if (dados?.isAcompanhante == true) {
-                        editor.remove("emailPaciente")
-                        editor.apply()
-                        navController.navigate("selecionar_paciente/$emailLimpo") {
-                            popUpTo("login") { inclusive = true }
+                        val sharedPrefs = context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
+                        sharedPrefs.edit().apply {
+                            putString("emailLogado", email)
+                            putBoolean("isAcompanhante", resposta.isAcompanhante)
+                            apply()
                         }
+
+                        // Verifica se o usuário logado é um acompanhante
+                        if (resposta.isAcompanhante) {
+                            navController.navigate("selecionar_paciente/${email}") {
+                                popUpTo("login") { inclusive = true }
+                            }
+                        } else {
+                            // Se for um paciente, vai direto para a Home
+                            navController.navigate("home/${email}") {
+                                popUpTo("login") { inclusive = true }
+                            }
+                        }
+
                     } else {
-                        editor.putString("emailPaciente", emailLimpo)
-                        editor.apply()
-                        navController.navigate("home/$emailLimpo") {
-                            popUpTo("login") { inclusive = true }
-                        }
+                        Toast.makeText(context, resposta?.mensagem ?: "Erro desconhecido", Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    Toast.makeText(context, "Login falhou. Verifique seus dados.", Toast.LENGTH_SHORT).show()
+                    val errorBody = response.errorBody()?.string()
+                    var mensagemErro = "Login falhou. Verifique seus dados."
+
+                    if (!errorBody.isNullOrBlank()) {
+                        try {
+                            val erro = Gson().fromJson(errorBody, RespostaApi::class.java)
+                            if (erro?.mensagem != null) {
+                                mensagemErro = erro.mensagem
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+
+                    Toast.makeText(context, mensagemErro, Toast.LENGTH_LONG).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(context, "Erro de conexão: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Erro de conexão com o servidor.", Toast.LENGTH_SHORT).show()
             } finally {
                 carregando = false
             }
@@ -84,7 +103,7 @@ fun TelaLogin(navController: NavController) {
     val textFieldShape = RoundedCornerShape(12.dp)
 
     Scaffold(
-        containerColor = Background // Fundo claro padrão do app
+        containerColor = Background // Fundo claro padrao do app
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -94,8 +113,16 @@ fun TelaLogin(navController: NavController) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // logo
+            Icon(
+                painter = painterResource(id = R.drawable.ic_logo_coracao),
+                contentDescription = "Logo Coração",
+                modifier = Modifier.size(100.dp),
+                tint = Primary
+            )
+
             Text(
-                text = "Bem-vindo ao Medicare!",
+                text = "Medicare",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = Primary
@@ -132,7 +159,7 @@ fun TelaLogin(navController: NavController) {
                 onClick = { realizarLogin() },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(54.dp), // Altura aprimorada
+                    .height(54.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Primary,
                     disabledContainerColor = Primary.copy(alpha = 0.5f)

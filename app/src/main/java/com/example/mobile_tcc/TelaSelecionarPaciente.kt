@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -32,6 +33,16 @@ fun TelaSelecionarPaciente(navController: NavController, emailAcompanhante: Stri
 
     var codigoConvite by remember { mutableStateOf("") }
     var vinculando by remember { mutableStateOf(false) }
+
+    fun realizarLogout() {
+        Toast.makeText(context, "Saindo...", Toast.LENGTH_SHORT).show()
+
+        sharedPrefs.edit().clear().apply()
+
+        navController.navigate("login") {
+            popUpTo(0) { inclusive = true }
+        }
+    }
 
     fun carregarPacientes() {
         scope.launch {
@@ -83,7 +94,7 @@ fun TelaSelecionarPaciente(navController: NavController, emailAcompanhante: Stri
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Card de Vinculação
+            // Card de Vinculacao
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 border = BorderStroke(1.dp, OutlineVariant),
@@ -150,6 +161,23 @@ fun TelaSelecionarPaciente(navController: NavController, emailAcompanhante: Stri
                         }
                     }
                 }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            OutlinedButton(
+                onClick = { realizarLogout() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp), // Ajuste o padding conforme o padrão tela
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ExitToApp, // Icone de "Sair"
+                    contentDescription = "Ícone de Sair"
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Sair da conta")
             }
         }
     }

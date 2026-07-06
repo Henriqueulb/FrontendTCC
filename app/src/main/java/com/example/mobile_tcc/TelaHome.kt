@@ -34,8 +34,6 @@ import java.util.Date
 import java.util.Locale
 import androidx.compose.foundation.border
 
-
-// CORES EXTRAÍDAS DO (Tailwind Config)
 private val ColorBackground = Color(0xFFF7F9FB)
 private val ColorSurfaceLowest = Color(0xFFFFFFFF)
 private val ColorOnSurface = Color(0xFF191C1E)
@@ -53,10 +51,10 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    // Verifica se o usuario atual esta logado como acompanhante
     val sharedPrefs = remember { context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE) }
     val emailLogado = remember { sharedPrefs.getString("emailLogado", "") ?: "" }
-    val isAcompanhante = remember { sharedPrefs.getBoolean("isAcompanhante", false) }
+
+    val isModoAcompanhante = emailLogado.isNotEmpty() && emailLogado != emailUsuario
 
     var progresso by remember { mutableStateOf(0.0f) }
     var tarefasPendentes by remember { mutableStateOf<List<ItemRotinaDTO>>(emptyList()) }
@@ -66,7 +64,7 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
     fun carregarHome() {
         scope.launch {
             try {
-                // Busca os dados clinicos do paciente que esta na rota
+                // Busca os dados clinicos do PACIENTE
                 val response = RetrofitClient.api.getHome(emailUsuario)
                 if (response.isSuccessful) {
                     val dados = response.body()
@@ -95,16 +93,16 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                     feito = foiFeito,
                     data = dataHoje
                 )
-                val emailExecutor = emailLogado.ifEmpty { emailUsuario }
+
+                val emailExecutor = if (emailLogado.isNotEmpty()) emailLogado else emailUsuario
+
                 val response = RetrofitClient.api.atualizarStatus(emailExecutor, statusDto)
 
                 if (response.isSuccessful) {
-
                     if (foiFeito) {
                         val idParaCancelar = (tarefa.titulo + tarefa.horario).hashCode()
                         AgendadorNotificacoes.cancelarReforco(context, idParaCancelar)
                     }
-
                     carregarHome()
                 } else {
                     Toast.makeText(context, "Erro ao atualizar status", Toast.LENGTH_SHORT).show()
@@ -120,9 +118,8 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
     }
 
     Scaffold(
-        containerColor = ColorBackground, // Fundo claro geral do HTML
+        containerColor = ColorBackground,
         bottomBar = {
-            // Barra de navegacao
             NavigationBar(
                 containerColor = ColorSurfaceLowest,
                 tonalElevation = 8.dp,
@@ -160,7 +157,8 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                     label = { Text("Perfil") },
                     selected = false,
                     onClick = {
-                        val emailParaPerfil = emailLogado.ifEmpty { emailUsuario }
+                        // Navega para o perfil do DONO DO CELULAR
+                        val emailParaPerfil = if (emailLogado.isNotEmpty()) emailLogado else emailUsuario
                         navController.navigate("perfil/$emailParaPerfil")
                     },
                     colors = NavigationBarItemDefaults.colors(unselectedIconColor = ColorOnSurfaceVariant, unselectedTextColor = ColorOnSurfaceVariant)
@@ -173,12 +171,13 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 24.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // Banner Acompanhante
-            if (isAcompanhante) {
+
+            // BANNER ACOMPANHANTE
+            if (isModoAcompanhante) {
                 item {
                     Card(
                         colors = CardDefaults.cardColors(containerColor = ColorSecondaryContainer.copy(alpha = 0.3f)),
-                        border = BorderStroke(1.dp, ColorSecondaryContainer),
+                        border = BorderStroke(1.dp, ColorSecondary),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                         shape = RoundedCornerShape(12.dp)
                     ) {
@@ -189,7 +188,7 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "Modo Acompanhante",
+                                    text = "MODO ACOMPANHANTE",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 12.sp,
                                     color = ColorSecondary
@@ -216,7 +215,7 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                 }
             }
 
-            // Cabeçalho
+            // Cabecalho
             item {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -300,7 +299,6 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                 }
             }
 
-            // Proximos Cuidados
             // CABEÇALHO DA LISTA DE TAREFAS ("Proximos Cuidados" e "Ver tudo")
             item {
                 Row(
@@ -364,7 +362,6 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                                 modifier = Modifier.weight(1f),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                // Icone Médico
                                 Box(
                                     modifier = Modifier
                                         .size(48.dp)
@@ -373,7 +370,7 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.MedicalServices, // Icone de Medicamento
+                                        imageVector = Icons.Default.MedicalServices,
                                         contentDescription = "Medicamento",
                                         tint = ColorPrimary
                                     )
@@ -381,7 +378,6 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
 
                                 Spacer(modifier = Modifier.width(16.dp))
 
-                                // Titulo e Dose
                                 Column {
                                     Text(
                                         text = item.titulo,

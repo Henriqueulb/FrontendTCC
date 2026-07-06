@@ -26,7 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.mobile_tcc.ui.theme.* // Importando as cores do seu tema
+import com.example.mobile_tcc.ui.theme.*
 
 @Composable
 fun TelaPerfil(navController: NavController, emailUsuario: String) {
@@ -38,15 +38,17 @@ fun TelaPerfil(navController: NavController, emailUsuario: String) {
     fun realizarLogout() {
         Toast.makeText(context, "Saindo...", Toast.LENGTH_SHORT).show()
 
+        sharedPrefs.edit().clear().apply()
+
         navController.navigate("login") {
             popUpTo(0) { inclusive = true }
         }
     }
 
     Scaffold(
-        containerColor = Background, // Fundo claro padrão
+        containerColor = Background,
         bottomBar = {
-            // Barra de Navegação Padronizada
+            // Barra de Navegacao
             NavigationBar(
                 containerColor = Color.White,
                 tonalElevation = 4.dp,
@@ -128,7 +130,7 @@ fun TelaPerfil(navController: NavController, emailUsuario: String) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // LISTA DE OPÇÕES (Cards padronizados)
+            // LISTA DE OPCOES
             Column(
                 modifier = Modifier.padding(horizontal = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -164,7 +166,7 @@ fun TelaPerfil(navController: NavController, emailUsuario: String) {
                     subtitulo = "Código de convite e acessos",
                     onClick = { navController.navigate("acompanhantes/$emailUsuario") }
                 )
-                // Relatórios
+                // Relatorios
                 OpcaoPerfil(
                     icone = Icons.Outlined.Description,
                     titulo = "Relatórios",
@@ -209,7 +211,6 @@ fun OpcaoPerfil(icone: ImageVector, titulo: String, subtitulo: String, onClick: 
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Quadradinho do Ícone
             Box(
                 modifier = Modifier
                     .size(48.dp)

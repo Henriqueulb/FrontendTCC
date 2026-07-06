@@ -29,7 +29,6 @@ fun TelaInicialLogin(navController: NavController) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Logo ou Ícone (Pode substituir por uma imagem real se tiver)
             Text(
                 text = "✚",
                 fontSize = 80.sp,
@@ -56,7 +55,7 @@ fun TelaInicialLogin(navController: NavController) {
 
             Spacer(modifier = Modifier.height(60.dp))
 
-            // Botão para ir para a Tela de Login
+            // Botao para ir para a Tela de Login
             Button(
                 onClick = { navController.navigate("login") },
                 modifier = Modifier
@@ -75,7 +74,7 @@ fun TelaInicialLogin(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Botão para ir para a Tela de Cadastro
+            // Botao para ir para a Tela de Cadastro
             OutlinedButton(
                 onClick = { navController.navigate("cadastro") },
                 modifier = Modifier

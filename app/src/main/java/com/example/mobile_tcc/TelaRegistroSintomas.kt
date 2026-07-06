@@ -151,7 +151,7 @@ fun TelaRegistroSintomas(navController: NavController, emailUsuario: String) {
                         onValueChange = { nomeNovoSintoma = it },
                         label = { Text("Nome do sintoma") },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp), // Arredonda os cantos igual aos seus Cards
+                        shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Primary,
                             unfocusedBorderColor = OutlineVariant,
@@ -186,7 +186,6 @@ fun TelaRegistroSintomas(navController: NavController, emailUsuario: String) {
                         HorizontalDivider(color = OutlineVariant.copy(alpha = 0.3f))
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Substitua o seu bloco listaSintomas.forEach por este:
                         listaSintomas.forEach { sintoma ->
                             Card(
                                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),

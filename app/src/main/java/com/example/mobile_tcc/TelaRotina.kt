@@ -26,7 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.mobile_tcc.ui.theme.* // Importando as cores do seu tema
+import com.example.mobile_tcc.ui.theme.*
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,7 +83,7 @@ fun TelaRotina(navController: NavController, emailUsuario: String, idRotina: Int
     }
 
     Scaffold(
-        containerColor = Background, // Fundo claro padronizado
+        containerColor = Background,
         topBar = {
             TopAppBar(
                 title = { Text("Cuidados da Rotina", color = Primary, fontWeight = FontWeight.Bold, fontSize = 20.sp) },
@@ -103,7 +103,7 @@ fun TelaRotina(navController: NavController, emailUsuario: String, idRotina: Int
                 },
                 containerColor = Primary,
                 contentColor = Color.White,
-                shape = RoundedCornerShape(16.dp) // Botão mais moderno
+                shape = RoundedCornerShape(16.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Adicionar Cuidado")
             }
@@ -147,12 +147,11 @@ fun TelaRotina(navController: NavController, emailUsuario: String, idRotina: Int
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                // LADO ESQUERDO: Ícone e Detalhes
+                                // LADO ESQUERDO: Icone e Detalhes
                                 Row(
                                     modifier = Modifier.weight(1f),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    // Quadradinho do Ícone
                                     Box(
                                         modifier = Modifier
                                             .size(48.dp)
@@ -194,7 +193,7 @@ fun TelaRotina(navController: NavController, emailUsuario: String, idRotina: Int
                                     }
                                 }
 
-                                // LADO DIREITO: Botão de Excluir Estilizado
+                                // LADO DIREITO: Botao de Excluir
                                 IconButton(
                                     onClick = { excluirTarefa(tarefa.id) },
                                     modifier = Modifier
@@ -211,7 +210,7 @@ fun TelaRotina(navController: NavController, emailUsuario: String, idRotina: Int
                             }
                         }
                     }
-                    item { Spacer(modifier = Modifier.height(80.dp)) } // Espaço para não ficar atrás do botão flutuante
+                    item { Spacer(modifier = Modifier.height(80.dp)) }
                 }
             }
         }

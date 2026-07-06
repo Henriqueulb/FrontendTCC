@@ -82,10 +82,11 @@ fun AppNavigation() {
             val email = backStackEntry.arguments?.getString("email") ?: ""
             TelaHome(navController, email)
         }
+
         //TELA RELAToRIO
         composable("relatorio/{email}") { backStackEntry ->
             val email = backStackEntry.arguments?.getString("email") ?: ""
-            TelaRelatorio(navController, email) // Passe o e-mail!
+            TelaRelatorio(navController, email)
         }
 
 
@@ -107,7 +108,7 @@ fun AppNavigation() {
             TelaCriarRotina(navController, email)
         }
 
-        // 3. Detalhes da Rotina (Lista os cuidados/itens dentro de uma pasta especifica)
+        // 3. Detalhes da Rotina
         composable(
             route = "rotina_detalhes/{email}/{idRotina}",
             arguments = listOf(

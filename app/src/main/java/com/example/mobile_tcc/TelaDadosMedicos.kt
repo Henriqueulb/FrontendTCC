@@ -18,7 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.mobile_tcc.ui.theme.* // Importando as cores do seu tema
+import com.example.mobile_tcc.ui.theme.*
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,7 +80,7 @@ fun TelaDadosMedicos(navController: NavController, emailUsuario: String) {
         }
     }
 
-    // Estilo padronizado para os campos de texto
+    // Estilo para os campos de texto
     val textFieldColors = OutlinedTextFieldDefaults.colors(
         focusedBorderColor = Primary,
         unfocusedBorderColor = OutlineVariant,
@@ -91,7 +91,7 @@ fun TelaDadosMedicos(navController: NavController, emailUsuario: String) {
     val textFieldShape = RoundedCornerShape(12.dp)
 
     Scaffold(
-        containerColor = Background, // Fundo padronizado
+        containerColor = Background,
         topBar = {
             TopAppBar(
                 title = { Text("Dados Médicos", color = Primary, fontWeight = FontWeight.Bold, fontSize = 20.sp) },

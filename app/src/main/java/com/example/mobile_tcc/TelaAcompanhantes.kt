@@ -46,11 +46,10 @@ fun TelaAcompanhantes(navController: NavController, emailUsuario: String) {
     var listaPacientes by remember { mutableStateOf<List<PacienteVinculadoDTO>>(emptyList()) }
     var pacienteSelecionadoId by remember { mutableStateOf<Int?>(null) }
 
-    // === FUNÇÕES DE LÓGICA (RETROFIT) - REVISADAS E CORRIGIDAS ===
     fun carregarDados() {
         scope.launch {
             try {
-                // 1. Descobre se o usuario logado e Paciente ou Acompanhante
+                // 1. Valida se o usuario logado e Paciente ou Acompanhante
                 val responsePerfil = RetrofitClient.api.getPerfil(emailUsuario)
                 if (responsePerfil.isSuccessful) {
                     isAcompanhante = responsePerfil.body()?.isAcompanhante ?: false
@@ -141,18 +140,15 @@ fun TelaAcompanhantes(navController: NavController, emailUsuario: String) {
         }
     }
 
-    // === EFEITO COLATERAL (ATIVA O CARREGAMENTO) ===
     LaunchedEffect(Unit) {
         carregarDados()
     }
 
-    // Estilos padronizados
     val textFieldColors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Primary)
     val textFieldShape = RoundedCornerShape(12.dp)
 
-    // === UI PRINCIPAL (O QUE É EXIBIDO) ===
     Scaffold(
-        containerColor = Background, // Fundo claro do tema
+        containerColor = Background,
         topBar = {
             TopAppBar(
                 title = { Text("Acompanhantes", color = Primary, fontWeight = FontWeight.Bold, fontSize = 20.sp) },
@@ -233,7 +229,6 @@ fun TelaAcompanhantes(navController: NavController, emailUsuario: String) {
                                     modifier = Modifier.padding(16.dp).fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    // Quadradinho do Ícone
                                     Box(
                                         modifier = Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)).background(if (isSelected) Color.White else PrimaryFixed),
                                         contentAlignment = Alignment.Center
@@ -264,7 +259,7 @@ fun TelaAcompanhantes(navController: NavController, emailUsuario: String) {
                 }
 
             } else {
-                // VISÃO DO PACIENTE (Código e Acompanhantes)
+                // VISAO DO PACIENTE (Código e Acompanhantes)
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Color.White),
                     border = BorderStroke(1.dp, Primary),
@@ -307,7 +302,7 @@ fun TelaAcompanhantes(navController: NavController, emailUsuario: String) {
                                     modifier = Modifier.padding(16.dp).fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    // Quadradinho do Ícone
+                                    // Quadradinho do Icone
                                     Box(
                                         modifier = Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)).background(PrimaryFixed),
                                         contentAlignment = Alignment.Center
