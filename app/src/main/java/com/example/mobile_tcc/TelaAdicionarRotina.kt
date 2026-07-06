@@ -95,7 +95,7 @@ fun TelaAdicionarRotina(navController: NavController, idRotina: Int) {
         }
     }
 
-    // Estilo padronizado para todos os TextFields desta tela
+    // Estilo para todos os TextFields desta tela
     val textFieldColors = OutlinedTextFieldDefaults.colors(
         focusedBorderColor = Primary,
         unfocusedBorderColor = OutlineVariant,
@@ -109,7 +109,7 @@ fun TelaAdicionarRotina(navController: NavController, idRotina: Int) {
     val textFieldShape = RoundedCornerShape(12.dp)
 
     Scaffold(
-        containerColor = Background, // Fundo claro do HTML
+        containerColor = Background,
         topBar = {
             TopAppBar(
                 title = { Text("Novo Cuidado", color = Primary, fontWeight = FontWeight.Bold, fontSize = 20.sp) },
@@ -194,7 +194,7 @@ fun TelaAdicionarRotina(navController: NavController, idRotina: Int) {
                 onClick = { salvarCuidado() },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(54.dp), // Altura melhorada para clique
+                    .height(54.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Primary,
                     disabledContainerColor = Primary.copy(alpha = 0.5f)
@@ -209,7 +209,6 @@ fun TelaAdicionarRotina(navController: NavController, idRotina: Int) {
                 }
             }
 
-            // Pequeno respiro na parte inferior
             Spacer(modifier = Modifier.height(16.dp))
         }
     }

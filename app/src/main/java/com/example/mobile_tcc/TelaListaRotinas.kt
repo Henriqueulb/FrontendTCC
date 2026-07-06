@@ -26,7 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.mobile_tcc.ui.theme.* // Importando as cores do seu tema
+import com.example.mobile_tcc.ui.theme.*
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -88,7 +88,7 @@ fun TelaListaRotinas(navController: NavController, emailUsuario: String) {
                 val response = RetrofitClient.api.reutilizarRotina(idRotina)
                 if (response.isSuccessful) {
                     Toast.makeText(context, "Rotina clonada! Ela já está ativa novamente.", Toast.LENGTH_SHORT).show()
-                    mostrarConcluidas = false // OCULTA AS CONCLUÍDAS APÓS REUTILIZAR
+                    mostrarConcluidas = false // OCULTA AS CONCLUÍDAS APOS REUTILIZAR
                     carregarRotinas()
                 } else {
                     Toast.makeText(context, "Erro ao reutilizar rotina", Toast.LENGTH_SHORT).show()
@@ -100,7 +100,7 @@ fun TelaListaRotinas(navController: NavController, emailUsuario: String) {
     }
 
     Scaffold(
-        containerColor = Background, // Fundo padronizado
+        containerColor = Background,
         topBar = {
             TopAppBar(
                 title = { Text("Minhas Rotinas", color = Primary, fontWeight = FontWeight.Bold, fontSize = 20.sp) },
@@ -150,7 +150,7 @@ fun TelaListaRotinas(navController: NavController, emailUsuario: String) {
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .padding(horizontal = 20.dp, vertical = 16.dp) // Espaçamento padronizado
+                .padding(horizontal = 20.dp, vertical = 16.dp) // Espacamento padronizado
         ) {
             if (carregando) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -226,7 +226,7 @@ fun TelaListaRotinas(navController: NavController, emailUsuario: String) {
                                 }
 
                                 if (!estaConcluida) {
-                                    // Botão de concluir se estiver ativa
+                                    // Botao de concluir se estiver ativa
                                     IconButton(
                                         onClick = { concluirRotina(rotina.idRotina) },
                                         modifier = Modifier
@@ -241,7 +241,7 @@ fun TelaListaRotinas(navController: NavController, emailUsuario: String) {
                                         )
                                     }
                                 } else {
-                                    // Info e botão de reutilizar se estiver concluída
+                                    // botao de reutilizar se estiver concluida
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                         Text(
                                             text = "CONCLUÍDA",
@@ -269,7 +269,7 @@ fun TelaListaRotinas(navController: NavController, emailUsuario: String) {
                             }
                         }
                     }
-                    item { Spacer(modifier = Modifier.height(80.dp)) } // Previne o FAB de cobrir o último item
+                    item { Spacer(modifier = Modifier.height(80.dp)) }
                 }
             }
         }

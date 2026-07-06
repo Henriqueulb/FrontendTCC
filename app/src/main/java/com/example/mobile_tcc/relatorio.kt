@@ -49,7 +49,6 @@ fun TelaRelatorio(navController: NavController, email: String) {
     var webViewRef by remember { mutableStateOf<WebView?>(null) }
     var isWebViewReady by remember { mutableStateOf(false) }
 
-    // 1. Estado do Filtro
     var selectedDays by remember { mutableIntStateOf(7) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -64,23 +63,22 @@ fun TelaRelatorio(navController: NavController, email: String) {
 
     val jsonProcessor = Json { ignoreUnknownKeys = true }
 
-    // 2. O LaunchedEffect agora vigia 'selectedDays' também!
     LaunchedEffect(email, selectedDays) {
         android.util.Log.d("TESTE_DEBUG", "Iniciando busca completa para: $email")
         scope.launch(Dispatchers.IO) {
             try {
-                // 1. Busca os dados métricos do relatório via Retrofit
+                // 1. Busca os dados do relatório via Retrofit
                 val response = RetrofitClient.api.getRelatorioDetalhado(email, selectedDays)
                 val data = response.body()
                 
                 if (data != null) {
-                    // 2. Busca dados complementares em paralelo para enriquecer o PDF
+                    // 2. Busca dados complementares para o PDF
                     val perfil = RetrofitClient.api.getPerfil(email).body()
                     val ficha = RetrofitClient.api.getFichaMedica(email).body()
                     val acompanhantes = RetrofitClient.api.listarAcompanhantes(email).body()
                     val rotinas = RetrofitClient.api.listarRotinas(email).body()
                     
-                    // Pega os itens da primeira rotina ativa (como exemplo de medicamentos/cuidados)
+                    // Pega os itens da primeira rotina ativa
                     val itens = if (!rotinas.isNullOrEmpty()) {
                         RetrofitClient.api.listarItensDaRotina(rotinas.first().idRotina).body()
                     } else null
@@ -100,7 +98,7 @@ fun TelaRelatorio(navController: NavController, email: String) {
             }
         }
     }
-    // 3. Injeção de Dados na WebView (Dynamic PDF)
+    // 3. Injecao de Dados na WebView
     LaunchedEffect(relatorioData, isWebViewReady) {
         if (relatorioData != null && isWebViewReady && webViewRef != null) {
             val jsonString = jsonProcessor.encodeToString(relatorioData)
@@ -112,22 +110,19 @@ fun TelaRelatorio(navController: NavController, email: String) {
         }
     }
 
-    // 4. WebView Invisível (apenas para processar o PDF)
     if (relatorioData != null) {
         AndroidView<WebView>(
             factory = { ctx ->
                 WebView(ctx).apply {
                     settings.javaScriptEnabled = true
-                    settings.domStorageEnabled = true // Importante para o Chart.js
+                    settings.domStorageEnabled = true
 
-                    // LÊ O ARQUIVO HTML COMO TEXTO E PASSA PARA A WEBVIEW
                     val htmlContent = ctx.assets.open("Relatorio.html").bufferedReader().use { it.readText() }
                     loadDataWithBaseURL("https://app.assets/", htmlContent, "text/html", "UTF-8", null)
 
                     webViewClient = object : WebViewClient() {
                         override fun onPageFinished(view: WebView?, url: String?) {
                             super.onPageFinished(view, url)
-                            // Pequeno delay para garantir que o motor JS da WebView processou o Chart.js
                             view?.postDelayed({
                                 webViewRef = view
                                 isWebViewReady = true
@@ -164,7 +159,7 @@ fun TelaRelatorio(navController: NavController, email: String) {
         ) {
             item { Spacer(modifier = Modifier.height(8.dp)) }
 
-            // Filtro de Período (Chips)
+            // Filtro de Periodo
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -184,7 +179,7 @@ fun TelaRelatorio(navController: NavController, email: String) {
                 }
             }
 
-            // Métrica Principal: Adesão
+            // Adesao
             item {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -194,7 +189,6 @@ fun TelaRelatorio(navController: NavController, email: String) {
                 ) {
                     Column(modifier = Modifier.padding(20.dp)) {
                         Text("Adesão Total", fontSize = 14.sp, color = OnSurfaceVariant)
-                        // Usa o dado real vindo do backend
                         val adesao = relatorioData?.taxaAdesaoGlobal ?: 0.0
                         Text("${adesao.toInt()}%", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Primary)
 
@@ -209,7 +203,7 @@ fun TelaRelatorio(navController: NavController, email: String) {
                 }
             }
 
-            // Cards de Sintomas (Bento style)
+            // Cards de Sintomas
             item {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     val totalSintomas = relatorioData?.sintomasFrequentes?.sumOf { it.contagem } ?: 0
@@ -220,7 +214,7 @@ fun TelaRelatorio(navController: NavController, email: String) {
                 }
             }
 
-            // Observações Clínicas
+            // Observacoes Clinicas
             item {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -247,12 +241,12 @@ fun TelaRelatorio(navController: NavController, email: String) {
                 }
             }
 
-            // Botão de Ação Exportar
+            // Botao de Acao Exportar
             item {
                 Button(
                     onClick = {
                         if (isWebViewReady && webViewRef != null) {
-                            // Verifica se precisa pedir permissão (apenas para Android < 10)
+                            // Verifica se precisa pedir permissao (apenas para Android < 10)
                             if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.P) {
                                 permissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                             } else {
@@ -294,7 +288,7 @@ fun InfoCard(titulo: String, valor: String, legenda: String, modifier: Modifier 
     }
 }
 
-// 3. Função de gerar PDF real usando a WebView carregada
+// Função de gerar PDF usando a WebView carregada
 fun gerarPDF(context: android.content.Context, webView: WebView) {
     try {
         val printManager = context.getSystemService(android.content.Context.PRINT_SERVICE) as android.print.PrintManager

@@ -177,7 +177,7 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                 item {
                     Card(
                         colors = CardDefaults.cardColors(containerColor = ColorSecondaryContainer.copy(alpha = 0.3f)),
-                        border = BorderStroke(1.dp, ColorSecondary), // Borda um pouco mais visível
+                        border = BorderStroke(1.dp, ColorSecondary),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                         shape = RoundedCornerShape(12.dp)
                     ) {
@@ -215,7 +215,7 @@ fun TelaHome(navController: NavController, emailUsuario: String) {
                 }
             }
 
-            // Cabeçalho
+            // Cabecalho
             item {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,

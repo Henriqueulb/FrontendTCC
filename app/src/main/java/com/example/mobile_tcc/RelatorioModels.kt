@@ -8,7 +8,6 @@ data class RelatorioCompletoDTO(
     val taxaAdesaoGlobal: Double,
     val evolucaoTemporal: List<PontoEvolucaoDTO>,
     val sintomasFrequentes: List<SintomaFrequenteDTO>,
-    // Novos campos para o PDF completo
     var nomePaciente: String? = null,
     var fichaMedica: FichaMedicaDTO? = null,
     var acompanhantes: List<AcompanhanteDTO>? = null,

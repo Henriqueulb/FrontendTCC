@@ -94,7 +94,7 @@ fun TelaSelecionarPaciente(navController: NavController, emailAcompanhante: Stri
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Card de Vinculação
+            // Card de Vinculacao
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 border = BorderStroke(1.dp, OutlineVariant),
@@ -169,11 +169,11 @@ fun TelaSelecionarPaciente(navController: NavController, emailAcompanhante: Stri
                 onClick = { realizarLogout() },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp), // Ajuste o padding conforme o padrão da sua tela
+                    .padding(horizontal = 16.dp), // Ajuste o padding conforme o padrão tela
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red)
             ) {
                 Icon(
-                    imageVector = Icons.Default.ExitToApp, // Icone padrao de "Sair"
+                    imageVector = Icons.Default.ExitToApp, // Icone de "Sair"
                     contentDescription = "Ícone de Sair"
                 )
                 Spacer(modifier = Modifier.width(8.dp))

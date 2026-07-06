@@ -84,7 +84,7 @@ fun TelaEditarPerfil(navController: NavController, emailUsuario: String) {
         }
     }
 
-    // Estilo padronizado para os campos de texto
+    // Estilo para os campos de texto
     val textFieldColors = OutlinedTextFieldDefaults.colors(
         focusedBorderColor = Primary,
         unfocusedBorderColor = OutlineVariant,
@@ -98,7 +98,7 @@ fun TelaEditarPerfil(navController: NavController, emailUsuario: String) {
     val textFieldShape = RoundedCornerShape(12.dp)
 
     Scaffold(
-        containerColor = Background, // Fundo claro padrão do app
+        containerColor = Background,
         topBar = {
             TopAppBar(
                 title = { Text("Editar Dados", color = Primary, fontWeight = FontWeight.Bold, fontSize = 20.sp) },

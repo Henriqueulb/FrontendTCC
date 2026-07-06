@@ -45,7 +45,7 @@ fun TelaConfiguracoes(navController: NavController, emailUsuario: String) {
         scope.launch {
             carregando = true
             try {
-                // Passa o DTO com email e senha para a nova rota POST
+                // Passa o DTO com email e senha para a rota POST
                 val dto = DesativarContaDTO(emailUsuario, senhaConfirmacao)
                 val response = RetrofitClient.api.desativarConta(dto)
 
@@ -73,7 +73,7 @@ fun TelaConfiguracoes(navController: NavController, emailUsuario: String) {
 
     // UI PRINCIPAL
     Scaffold(
-        containerColor = Background, // Fundo claro padrão
+        containerColor = Background,
         topBar = {
             TopAppBar(
                 title = { Text("Configurações", color = Primary, fontWeight = FontWeight.Bold, fontSize = 20.sp) },
@@ -92,7 +92,7 @@ fun TelaConfiguracoes(navController: NavController, emailUsuario: String) {
                 .padding(paddingValues)
                 .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
-            // Bloco de Configurações Agrupado em um Card
+            // Bloco de Configuracoes Agrupado
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 border = BorderStroke(1.dp, OutlineVariant),
@@ -110,7 +110,7 @@ fun TelaConfiguracoes(navController: NavController, emailUsuario: String) {
 
                     HorizontalDivider(color = OutlineVariant.copy(alpha = 0.5f))
 
-                    // Notificações
+                    // Notificacoes
                     ItemConfiguracao(
                         icone = Icons.Outlined.Notifications,
                         titulo = "Notificações",
@@ -128,7 +128,7 @@ fun TelaConfiguracoes(navController: NavController, emailUsuario: String) {
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(54.dp), // Altura aprimorada
+                    .height(54.dp),
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
             ) {
                 if (carregando) {
@@ -142,12 +142,12 @@ fun TelaConfiguracoes(navController: NavController, emailUsuario: String) {
         }
     }
 
-    // DIALOG DE CONFIRMAÇÃO COM SENHA
+    // DIALOG DE CONFIRMACAO
     if (mostrarDialogExclusao) {
         AlertDialog(
             onDismissRequest = {
                 mostrarDialogExclusao = false
-                senhaConfirmacao = "" // Limpa o campo se fechar o dialog
+                senhaConfirmacao = ""
             },
             containerColor = Color.White,
             title = {
@@ -193,7 +193,7 @@ fun TelaConfiguracoes(navController: NavController, emailUsuario: String) {
     }
 }
 
-// COMPONENTE DE ITEM DE MENU ADAPTADO
+// COMPONENTE DE ITEM DE MENU
 @Composable
 fun ItemConfiguracao(icone: ImageVector, titulo: String, onClick: () -> Unit) {
     Row(

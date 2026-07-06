@@ -59,7 +59,7 @@ fun TelaCadastro(navController: NavController) {
         }
     }
 
-    // Estilo padronizado para os campos de texto
+    // Estilo para os campos de texto
     val textFieldColors = OutlinedTextFieldDefaults.colors(
         focusedBorderColor = Primary,
         unfocusedBorderColor = OutlineVariant,
@@ -70,7 +70,7 @@ fun TelaCadastro(navController: NavController) {
     val textFieldShape = RoundedCornerShape(12.dp)
 
     Scaffold(
-        containerColor = Background // Fundo claro padrão do app
+        containerColor = Background
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -146,7 +146,7 @@ fun TelaCadastro(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Checkbox estilizado
+            // Checkbox
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
@@ -169,7 +169,7 @@ fun TelaCadastro(navController: NavController) {
                 onClick = { realizarCadastro() },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(54.dp), // Altura aprimorada
+                    .height(54.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Primary,
                     disabledContainerColor = Primary.copy(alpha = 0.5f)

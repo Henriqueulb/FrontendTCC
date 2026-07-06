@@ -19,6 +19,7 @@ import androidx.navigation.NavController
 import com.example.mobile_tcc.ui.theme.*
 import kotlinx.coroutines.launch
 import com.google.gson.Gson
+import androidx.compose.ui.res.painterResource
 
 @Composable
 fun TelaLogin(navController: NavController) {
@@ -102,7 +103,7 @@ fun TelaLogin(navController: NavController) {
     val textFieldShape = RoundedCornerShape(12.dp)
 
     Scaffold(
-        containerColor = Background // Fundo claro padrão do app
+        containerColor = Background // Fundo claro padrao do app
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -112,8 +113,16 @@ fun TelaLogin(navController: NavController) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // logo
+            Icon(
+                painter = painterResource(id = R.drawable.ic_logo_coracao),
+                contentDescription = "Logo Coração",
+                modifier = Modifier.size(100.dp),
+                tint = Primary
+            )
+
             Text(
-                text = "Bem-vindo ao Medicare!",
+                text = "Medicare",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = Primary
